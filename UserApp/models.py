@@ -43,7 +43,7 @@ class Orders(models.Model):
         ('Refunded', 'Refunded'),]
 
     order_id=models.AutoField(primary_key=True)
-    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=True)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     amount=models.DecimalField(max_digits=10, decimal_places=2)
     order_status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='Pending')
     order_date = models.DateTimeField(auto_now_add=True)
@@ -52,9 +52,12 @@ class Orders(models.Model):
         db_table='Orders'
 
 class OrderItem(models.Model):
-    order=models.ForeignKey('Order',on_delete=models.CASCADE)
+    order=models.ForeignKey('Orders',on_delete=models.CASCADE)
     Product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity=models.IntegerField()
+
+    class Meta:
+        db_table='order_item'
 
 class Payment(models.Model):
     PAYMENT_METHODS = [
