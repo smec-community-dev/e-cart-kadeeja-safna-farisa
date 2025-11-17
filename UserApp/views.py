@@ -1,24 +1,41 @@
-from django.shortcuts import render,redirect
-from django.contrib.auth import authenticate, login
+from django.shortcuts import render,redirect,get_object_or_404
+from django.contrib.auth import authenticate, login,logout
 from django.contrib import messages
+from django.core.paginator import Paginator
 from CoreApp.models import *
 from SellerApp.models import *
+from django.db.models import Q
+
+from .models import *
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
-def home(request):
-    return render(request, "user/index.html")
+def index(request):
+    search_query = request.GET.get('q', '')
+
+    if search_query:
+        products = Product.objects.filter(
+            Q(product_name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        ).order_by('-product_id')
+    else:
+       products = Product.objects.all().order_by('-product_id')
+
+    paginator = Paginator(products, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, "user/index.html",{"page_obj": page_obj,"search_query": search_query,})
 
 
 def user_reg(request):
-    if request.method=="Post":
+    if request.method=="POST":
         user_name =request.POST['username']
         email=request.POST['email']
-        role=request.POST['role']
         contact=request.POST['contact']
         address=request.POST['address']
         password=request.POST['password']
         re_password=request.POST['re_password']
-        if not all([user_name, email, contact, address, password, re_password, role]):
+        if not all([user_name, email, contact, address, password, re_password]):
             messages.error(request, "All fields are required.")
             return redirect('register')
         if User.objects.filter(email=email).exists():
@@ -33,8 +50,11 @@ def user_reg(request):
             password=password,
             contact=contact,
             address=address,
-            role=role
+            is_buyer=True,
+            is_seller=False,
+            is_admin=False
         )
+        messages.success(request,"registration successful")
         return redirect('login')
     return render(request,'user/register.html')
 
@@ -43,16 +63,71 @@ def user_login(request):
     if request.method == 'POST':
         username=request.POST['username']
         password=request.POST['password']
-        user=authenticate(username=username,password=password)
+        user = authenticate(username=username, password=password)
+
         if user is None:
             messages.error(request, "Invalid username or password.")
             return redirect('login')
-        if user.role == "buyer":
-            login(request, user)
-            return redirect("home")
-    return render(request,'login.html')
+
+        if not user.is_buyer:
+            messages.error(request, "Not a valid user.")
+            return redirect('login')
+
+        login(request, user)
+        return redirect("home")
+    users=User.objects.all()
+    return render(request, 'user/login.html',{'data':users})
+
+@login_required(login_url='/user/login/')
+def home(request):
+    search_query = request.GET.get('q', '')
+
+    if search_query:
+        products = Product.objects.filter(
+            Q(product_name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        ).order_by('-product_id')
+    else:
+        products = Product.objects.all().order_by('-product_id')
+
+    paginator = Paginator(products, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "user/home.html", {"page_obj": page_obj,"search_query": search_query,})
 
 
-def view_product(request):
-    product=Product.objects.all()
+def product_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    images = product.productimage_set.all()
+    return render(request, "user/product_detail.html", {"product": product, "images": images})
+
+
+@login_required(login_url='/user/login/')
+def add_to_cart(request,slug):
+    product=get_object_or_404(Product,slug=slug)
+
+    cart_item,created = Cart.objects.get_or_create(product=product,user=request.user,  defaults={"quantity": 1})
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save()
+    return redirect('cart')
+
+
+
+@login_required(login_url='/user/login/')
+def view_cart(request):
+    cart_items=Cart.objects.filter(user=request.user)
+    total = sum(item.product.product_price * item.quantity for item in cart_items)
+    return render(request,'user/cart.html',{'cart_items':cart_items,"total":total})
+
+@login_required(login_url='/user/login/')
+def remove_cart(request, cart_id):
+    item = get_object_or_404(Cart, cart_id=cart_id, user=request.user)
+    item.delete()
+    return redirect("cart")
+
+def user_logout(request):
+    logout(request)
+    return redirect('index')
 

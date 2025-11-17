@@ -230,6 +230,16 @@
       transform: translateY(-2px);
     }
 
+
+/* ==== SEARCH BAR ==== */
+    .search-wrapper{position:relative;max-width:600px;margin:0 auto;}
+    .search-wrapper input{background:rgba(255,255,255,.9);border:none;border-radius:50px;padding:.9rem 1.2rem .9rem 3rem;
+                       font-size:1rem;transition:.3s;box-shadow:0 4px 15px rgba(0,0,0,.1);}
+    .search-wrapper input:focus{outline:none;box-shadow:0 0 0 3px rgba(79,70,229,.3);}
+    .search-wrapper i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--primary);}
+    .search-wrapper button{background:var(--primary);color:#fff;border:none;border-radius:50px;
+                            padding:.7rem 1.5rem;position:absolute;right:4px;top:4px;transition:.3s;}
+    .search-wrapper button:hover{background:var(--primary-dark);}
     /* Footer */
     footer {
       background: rgba(30, 41, 59, 0.95);
@@ -274,11 +284,11 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
 
-      <form class="search-bar mx-auto d-flex">
-        <i class="fas fa-search"></i>
-        <input type="search" placeholder="Search products..." aria-label="Search">
-        <button type="submit">Search</button>
-      </form>
+      <form class="search-wrapper d-flex mx-auto" method="get" action="{% url 'index' %}">
+    <i class="fas fa-search"></i>
+    <input type="search" name="q" placeholder="Search products..." value="{{ search_query|default:'' }}">
+    <button type="submit">Search</button>
+</form>
 
       <ul class="navbar-nav ms-auto align-items-center">
 
@@ -288,15 +298,9 @@
             <i class="fas fa-shopping-cart fs-5"></i>
           </a>
         </li>
-
-        <!-- Become a Seller -->
-        <li class="nav-item">
-          <a class="nav-link btn-auth btn-register" href="seller_register.html">Become a Seller</a>
-        </li>
-
         <!-- Login -->
         <li class="nav-item ms-2">
-          <a class="nav-link btn-auth btn-login" href="login.html">Login</a>
+          <a class="nav-link btn-auth btn-login" href="{% url 'login' %}">Login</a>
         </li>
 
       </ul>
@@ -343,56 +347,64 @@
     </div>
   </div>
 
-  <!-- Featured Products -->
-  <div class="container my-5 pb-5">
-    <h4 class="section-title">Featured Products</h4>
-    <div class="row g-4">
+  <div class="container my-5">
+  <div class="row g-4">
+
+    {% for product in page_obj %}
       <div class="col-md-3">
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" class="product-img" alt="Headphones">
-          <div class="product-body">
-            <h6 class="product-title">Wireless Headphones</h6>
-            <div class="product-rating"><i class="fas fa-star"></i> 4.6</div>
-            <div class="product-price">$199.00</div>
-            <a href="product_detail.html" class="btn btn-view">View Details</a>
+        <div class="card h-100 text-center">
+
+          {% with product.productimage_set.first as img %}
+            {% if img %}
+              <img src="{{ img.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">
+            {% else %}
+              <img src="https://via.placeholder.com/300?text=No+Image" class="card-img-top">
+            {% endif %}
+          {% endwith %}
+
+          <div class="card-body">
+            <h6 class="card-title">
+              <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-dark">
+                {{ product.product_name|truncatechars:45 }}
+              </a>
+            </h6>
+            <p class="fw-bold">₹{{ product.product_price }}</p>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500" class="product-img" alt="Shoes">
-          <div class="product-body">
-            <h6 class="product-title">Running Shoes</h6>
-            <div class="product-rating"><i class="fas fa-star"></i> 4.8</div>
-            <div class="product-price">$249.00</div>
-            <a href="product_detail.html" class="btn btn-view">View Details</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1556911220-e15b28d3c2e8?w=500" class="product-img" alt="Coffee Maker">
-          <div class="product-body">
-            <h6 class="product-title">Smart Coffee Maker</h6>
-            <div class="product-rating"><i class="fas fa-star"></i> 4.5</div>
-            <div class="product-price">$329.00</div>
-            <a href="product_detail.html" class="btn btn-view">View Details</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500" class="product-img" alt="Book">
-          <div class="product-body">
-            <h6 class="product-title">Python Programming</h6>
-            <div class="product-rating"><i class="fas fa-star"></i> 4.9</div>
-            <div class="product-price">$49.00</div>
-            <a href="product_detail.html" class="btn btn-view">View Details</a>
-          </div>
-        </div>
-      </div>
-    </div>
+    {% empty %}
+      <div class="col-12 text-center text-white"><h5>No products found.</h5></div>
+    {% endfor %}
+
   </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
 
   <!-- Footer -->
   <footer>
