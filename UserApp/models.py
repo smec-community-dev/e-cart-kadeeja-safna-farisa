@@ -6,7 +6,7 @@ class Reviews(models.Model):
     review_id=models.AutoField(primary_key=True)
     product=models.ForeignKey(Product,on_delete=models.CASCADE)
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    image=models.ImageField(upload_to='review_images/')
+    image=models.ImageField(upload_to='review_images/',null=True)
     rating=models.IntegerField()
     comment=models.TextField(blank=True,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
@@ -85,5 +85,8 @@ class Payment(models.Model):
         db_table='Payment'
 
 class Address(models.Model):
-    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models)
+    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     address=models.TextField(null=False,blank=False)
+
+    class Meta:
+        db_table="user_address"
