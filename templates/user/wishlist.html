@@ -1,35 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wishlist | E-Shop</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body { background: #f8f9fa; }
+        .wishlist-img { width: 70px; height: 70px; object-fit: cover; border-radius: 5px; }
+        table td { vertical-align: middle; }
+    </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="index.html">E-Shop</a>
-    </div>
-  </nav>
 
-  <div class="container mt-5">
-    <h3 class="fw-bold mb-4">My Wishlist</h3>
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card shadow-sm">
-          <img src="https://via.placeholder.com/200" class="card-img-top">
-          <div class="card-body text-center">
-            <h6>Sample Product</h6>
-            <button class="btn btn-primary btn-sm me-2">Add to Cart</button>
-            <button class="btn btn-danger btn-sm">Remove</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="container py-4">
+    <h2 class="mb-4 text-center">❤️ My Wishlist</h2>
 
-  <footer><p>© 2025 E-Shop</p></footer>
+    {% if wishlist_items %}
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-dark text-center">
+                <tr>
+                    <th>Image</th>
+                    <th>Product Details</th>
+                    <th>Price</th>
+                    <th width="220">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                {% for item in wishlist_items %}
+                <tr>
+                    <!-- Product Image -->
+                    <td>
+                        <a href="{% url 'single_product' item.product.product_id %}">
+                            <img src="{{ item.product.image.url }}" class="wishlist-img" alt="Product">
+                        </a>
+                    </td>
+
+                    <!-- Product Details -->
+                    <td>
+                        <h6 class="mb-1">{{ item.product.name }}</h6>
+                        <small class="text-muted">{{ item.product.category }}</small>
+                    </td>
+
+                    <!-- Price -->
+                    <td>
+                        <strong>₹{{ item.product.price }}</strong>
+                    </td>
+
+                    <!-- Action Buttons -->
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+
+                            <!-- View Product -->
+                            <a href="{% url 'single_product' item.product.product_id %}"
+                               class="btn btn-primary btn-sm">
+                                View
+                            </a>
+
+                            <!-- Add to Cart -->
+                            <form action="{% url 'add_to_cart' item.product.product_id %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm">Add to Cart</button>
+                            </form>
+
+                            <!-- Remove Wishlist -->
+                            <form action="{% url 'toggle_wishlist' item.product.product_id %}" method="post">
+                                {% csrf_token %}
+                                <button class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fa-regular fa-heart fa-4x text-danger mb-3"></i>
+        <h4>Your wishlist is empty</h4>
+        <p class="text-muted">Save products to your wishlist and view them later.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Browse Products</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

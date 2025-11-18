@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from CoreApp.models import *
 from SellerApp.models import *
 from django.db.models import Q
-
+from decorators.decorator import role_required
 from .models import *
 from django.contrib.auth.decorators import login_required
 # Create your views here.
@@ -78,7 +78,7 @@ def user_login(request):
     users=User.objects.all()
     return render(request, 'user/login.html',{'data':users})
 
-@login_required(login_url='/user/login/')
+@role_required('buyer',login_url='/user/login/')
 def home(request):
     search_query = request.GET.get('q', '')
 
@@ -100,34 +100,75 @@ def home(request):
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     images = product.productimage_set.all()
-    return render(request, "user/product_detail.html", {"product": product, "images": images})
+
+    in_cart = False
+    cart_quantity = 0
+    if request.user.is_authenticated:
+        cart_item = Cart.objects.filter(user=request.user, product=product).first()
+        if cart_item:
+            in_cart = True
+            cart_quantity = cart_item.quantity
+    return render(request, "user/product_detail.html", {"product": product, "images": images,"in_cart":in_cart,"cart_quantity":cart_quantity})
 
 
-@login_required(login_url='/user/login/')
+@role_required('buyer',login_url='/user/login/')
 def add_to_cart(request,slug):
-    product=get_object_or_404(Product,slug=slug)
 
+    product=get_object_or_404(Product,slug=slug)
     cart_item,created = Cart.objects.get_or_create(product=product,user=request.user,  defaults={"quantity": 1})
     if not created:
         cart_item.quantity += 1
         cart_item.save()
+
+
     return redirect('cart')
 
 
 
-@login_required(login_url='/user/login/')
+@role_required('buyer',login_url='/user/login/')
 def view_cart(request):
     cart_items=Cart.objects.filter(user=request.user)
     total = sum(item.product.product_price * item.quantity for item in cart_items)
     return render(request,'user/cart.html',{'cart_items':cart_items,"total":total})
 
-@login_required(login_url='/user/login/')
+@role_required('buyer',login_url='/user/login/')
 def remove_cart(request, cart_id):
     item = get_object_or_404(Cart, cart_id=cart_id, user=request.user)
     item.delete()
     return redirect("cart")
 
+@role_required('buyer',login_url='/user/login/')
+def checkout(request):
+    cart_items=Cart.objects.filter(user=request.user)
+    if not cart_items.exists():
+        return redirect('cart')
+    total = sum(item.product.product_price * item.quantity for item in cart_items)
+    if request.method =="POST":
+        order= Orders.objects.create(
+             user=request.user,
+            amount=total,
+            order_status="pending",
+        )
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity
+        )
+        messages.success(request, "Order placed successfully!")
+        return redirect('view_orders')
+    return render(request,"user/checkout.html",{'cart_item' : cart_items,"total": total})
+
+@role_required('buyer',login_url='/user/login/')
+def view_orders(request):
+    order=Orders.objects.filter(user=request.user)
+    if not order.exists():
+         messages.error(request,"No orders found")
+    return render(request, "user/order_history.html", {'order': order})
+
 def user_logout(request):
     logout(request)
     return redirect('index')
+
+def add_to_wishlist(request):
 

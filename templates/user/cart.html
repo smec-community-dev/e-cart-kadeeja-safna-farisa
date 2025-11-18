@@ -40,7 +40,7 @@
 
   <div class="text-end">
     <h4 class="text-warning">Grand Total: ₹{{ total }}</h4>
-    <button class="btn btn-success btn-lg mt-3">Checkout</button>
+    <a href="{% url 'checkout' %}"><button class="btn btn-success btn-lg mt-3">Checkout</button></a>
   </div>
 
   {% else %}

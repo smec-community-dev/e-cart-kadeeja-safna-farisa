@@ -94,7 +94,11 @@
         </p>
 
         <div class="mt-4 d-flex gap-3">
-         <a href="{% url 'add_to_cart' product.slug %}" class="btn btn-buy btn-lg px-4">🛒 Add to Cart</a>
+          {% if in_cart %}
+            <a href="{% url 'cart'  %}" class="btn btn-buy btn-lg px-4">🛒 Go to Cart</a>
+          {% else %}
+           <a href="{% url 'add_to_cart' product.slug %}" class="btn btn-buy btn-lg px-4">🛒 Add to Cart</a>
+          {% endif %}
           <button class="btn btn-warning btn-lg px-4">⚡ Buy Now</button>
         </div>
 
