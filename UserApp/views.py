@@ -32,10 +32,9 @@ def user_reg(request):
         user_name =request.POST['username']
         email=request.POST['email']
         contact=request.POST['contact']
-        address=request.POST['address']
         password=request.POST['password']
         re_password=request.POST['re_password']
-        if not all([user_name, email, contact, address, password, re_password]):
+        if not all([user_name, email, contact, password, re_password]):
             messages.error(request, "All fields are required.")
             return redirect('register')
         if User.objects.filter(email=email).exists():
@@ -49,7 +48,7 @@ def user_reg(request):
             email=email,
             password=password,
             contact=contact,
-            address=address,
+            status=True,
             is_buyer=True,
             is_seller=False,
             is_admin=False
@@ -71,6 +70,10 @@ def user_login(request):
 
         if not user.is_buyer:
             messages.error(request, "Not a valid user.")
+            return redirect('login')
+
+        if not user.status:
+            messages.error(request, "This account is restricted.")
             return redirect('login')
 
         login(request, user)
@@ -170,5 +173,5 @@ def user_logout(request):
     logout(request)
     return redirect('index')
 
-def add_to_wishlist(request):
+
 
