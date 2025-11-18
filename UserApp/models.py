@@ -6,6 +6,7 @@ class Reviews(models.Model):
     review_id=models.AutoField(primary_key=True)
     product=models.ForeignKey(Product,on_delete=models.CASCADE)
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    image=models.ImageField(upload_to='review_images/')
     rating=models.IntegerField()
     comment=models.TextField(blank=True,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
@@ -43,6 +44,7 @@ class Orders(models.Model):
         ('Refunded', 'Refunded'),]
 
     order_id=models.AutoField(primary_key=True)
+    address=models.ForeignKey('Address',on_delete=models.CASCADE)
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     amount=models.DecimalField(max_digits=10, decimal_places=2)
     order_status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='Pending')
@@ -81,3 +83,7 @@ class Payment(models.Model):
 
     class Meta:
         db_table='Payment'
+
+class Address(models.Model):
+    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models)
+    address=models.TextField(null=False,blank=False)

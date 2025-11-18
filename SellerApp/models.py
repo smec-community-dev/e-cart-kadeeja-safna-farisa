@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from CoreApp.models import Category
+from CoreApp.models import *
 from django.utils.text import slugify
 # Create your models here.
 
@@ -18,7 +18,7 @@ class Product(models.Model):
     seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=100)
     product_price = models.IntegerField()
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True)
     description = models.TextField()
     stock = models.IntegerField()
     slug = models.SlugField(unique=True, blank=True)
