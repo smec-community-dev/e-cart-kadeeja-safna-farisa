@@ -10,7 +10,7 @@ class User(AbstractUser):
     is_admin = models.BooleanField(default=False)
     contact = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-
+    status=models.BooleanField(default=True)
     class Meta:
         db_table='user_reg'
 
