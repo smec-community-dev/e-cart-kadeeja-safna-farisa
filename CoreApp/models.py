@@ -9,8 +9,7 @@ class User(AbstractUser):
     is_seller = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     contact = models.CharField(max_length=15, blank=True, null=True)
-    address = models.TextField(blank=True, null=True)
-
+    status=models.BooleanField(default=True)
     class Meta:
         db_table='user_reg'
 
@@ -30,3 +29,6 @@ class SubCategory(models.Model):
     category = models.ForeignKey('Category',on_delete=models.CASCADE)
     sub_category_name=models.CharField(max_length=50)
     description= models.TextField(blank=True,null=True)
+
+    class Meta:
+        db_table="sub_category"
