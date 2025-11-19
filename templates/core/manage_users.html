@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Users</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary-color: #1E40AF;
+      --secondary-color: #3B82F6;
+      --background-color: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --success-color: #16A34A;
+      --error-color: #DC2626;
+      --highlight-color: #6366F1;
+    }
+    body {
+      background-color: #f8f9fa;
+      color: var(--text-primary);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    /* Sidebar */
+    .sidebar {
+      background: var(--primary-color);
+      min-height: 100vh;
+      padding-top: 1.5rem;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    }
+    .sidebar h4 {
+      color: white;
+      font-weight: 600;
+    }
+    .sidebar a {
+      color: rgba(255, 255, 255, 0.9);
+      padding: 0.75rem 1.2rem;
+      display: block;
+      border-radius: 0.5rem;
+      margin: 0.3rem 1rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: var(--highlight-color);
+      color: white;
+      transform: translateX(4px);
+    }
+    .sidebar a i {
+      width: 24px;
+      text-align: center;
+    }
+    /* Page Header */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .page-header h2 {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    /* Card */
+    .card {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .card-body {
+      padding: 1.5rem;
+    }
+    /* Table */
+    .table thead {
+      background: var(--primary-color);
+      color: white;
+    }
+    .table thead th {
+      font-weight: 600;
+      border: none;
+      padding: 1rem;
+    }
+    .table tbody td {
+      vertical-align: middle;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(99, 102, 241, 0.05);
+    }
+    /* Badges */
+    .badge.bg-success {
+      background-color: var(--success-color) !important;
+      color: white;
+    }
+    .badge.bg-warning {
+      background-color: #F59E0B !important;
+      color: white;
+    }
+    .badge.bg-danger {
+      background-color: var(--error-color) !important;
+      color: white;
+    }
+    /* Buttons */
+    .btn-sm i {
+      font-size: 0.9rem;
+    }
+    .btn-warning {
+      background-color: #F59E0B;
+      border: none;
+      color: white;
+    }
+    .btn-warning:hover {
+      background-color: #D97706;
+    }
+    .btn-danger {
+      background-color: var(--error-color);
+      border: none;
+    }
+    .btn-danger:hover {
+      background-color: #B91C1C;
+    }
+    /* Search & Filter */
+    .search-filter {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .search-filter .form-control,
+    .search-filter .form-select {
+      max-width: 300px;
+    }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        z-index: 1000;
+        width: 260px;
+        left: -260px;
+        transition: left 0.3s ease;
+      }
+      .sidebar.show {
+        left: 0;
+      }
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar text-white col-md-2">
+      <h4 class="text-center mb-4">Admin Panel</h4>
+      <a href="admin_dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="manage_user" class="active"><i class="bi bi-people"></i> Users</a>
+      <a href="manage_sellers"><i class="bi bi-shop"></i> Sellers</a>
+      <a href="manage_categories"><i class="bi bi-grid"></i> Categories</a>
+      <a href="manage_products"><i class="bi bi-box"></i> Products</a>
+      <a href="manage_orders"><i class="bi bi-cart"></i> Orders</a>
+      <a href="manage_payments"><i class="bi bi-credit-card"></i> Payments</a>
+      <a href="admin_login"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-fill p-4 p-md-5">
+      <div class="page-header">
+        <h2>Manage Buyers</h2>
+        <button class="btn btn-primary">
+          <i class="bi bi-person-plus"></i> Add Buyer
+        </button>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="search-filter">
+        <input type="text" class="form-control" placeholder="Search by name or email...">
+        <select class="form-select">
+          <option selected>buyer</option>
+        </select>
+        <select class="form-select">
+          <option>All Status</option>
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+
+      <!-- Users Table (Only Buyers) -->
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Contact</th>
+                  <th>Address</th>
+                  <th>Detail</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+            <tbody>
+              {% for u in users%}
+               {% if u.is_buyer and not u.is_superuser %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
+                        <i class="bi bi-person text-muted"></i>
+                      </div>
+                      {{u.username}}
+                    </div>
+                  </td>
+                  <td>{{u.email}}</td>
+                  <td>{{u.contact}}</td>
+                  <td>{{u.address}}</td>
+                  <td><a href="">More Details</a></td>
+                  <td><a href="">
+                      <button class="btn btn-sm btn-danger" title="reject">Block</button>
+                    </button></a></td>
+                </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <p class="text-muted mb-0">Showing 1 to 3 of 892 buyers</p>
+        <nav>
+          <ul class="pagination pagination-sm">
+            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Optional: Mobile menu toggle (if needed)
+    document.querySelectorAll('.navbar-toggler').forEach(toggler => {
+      toggler.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.toggle('show');
+      });
+    });
+  </script>
+</body>
+</html>

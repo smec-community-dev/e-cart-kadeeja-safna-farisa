@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | E-Shop</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --bg: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border: rgba(255, 255, 255, 0.3);
+      --shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Manrope',sans-serif;
+      background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      padding:2rem 1rem;
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    .register-wrapper { max-width:500px; margin:0 auto; width:100%; }
+    .register-card {
+      background:var(--card-bg);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      padding:3rem 2.5rem;
+      position:relative;
+      overflow:hidden;
+      animation:fadeInUp .6s ease-out;
+    }
+    .register-card::before {
+      content:''; position:absolute; top:0; left:0; right:0;
+      height:6px;
+      background:linear-gradient(90deg,#4f46e5,#8b5cf6);
+      border-radius:24px 24px 0 0;
+    }
+
+    .brand-logo { text-align:center; margin-bottom:2rem; }
+    .brand-logo h1 {
+      font-weight:800; font-size:2.2rem;
+      background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      letter-spacing:-1px;
+    }
+    .brand-logo p { color:var(--text-light); font-size:.95rem; margin-top:.5rem; }
+
+    .form-group { position:relative; margin-bottom:1.75rem; }
+    .form-control-custom {
+      width:100%; padding:1rem 1rem .75rem;
+      font-size:1rem; border:none; border-bottom:2px solid #e2e8f0;
+      background:transparent; transition:all .3s ease; outline:none; color:var(--text);
+    }
+    .form-control-custom:focus { border-bottom-color:var(--primary); }
+    .form-control-custom:focus + .form-label-custom,
+    .form-control-custom:not(:placeholder-shown) + .form-label-custom {
+      top:.5rem; font-size:.8rem; color:var(--primary); font-weight:600;
+    }
+    .form-label-custom {
+      position:absolute; left:1rem; top:1.1rem;
+      font-size:1rem; color:var(--text-light);
+      pointer-events:none; transition:all .3s ease; font-weight:500;
+    }
+    .input-icon { position:absolute; right:1rem; top:1.1rem; color:var(--text-light); font-size:1.1rem; transition:color .3s ease; }
+    .form-control-custom:focus ~ .input-icon { color:var(--primary); }
+
+    .btn-register {
+      width:100%; padding:1rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:white; border:none; border-radius:14px;
+      font-weight:700; font-size:1.1rem; cursor:pointer;
+      transition:all .3s ease; margin-top:1rem;
+      box-shadow:0 8px 20px rgba(79,70,229,.3);
+    }
+    .btn-register:hover { transform:translateY(-3px); box-shadow:0 12px 28px rgba(79,70,229,.4); }
+
+    .login-link { text-align:center; margin-top:1.5rem; font-size:.95rem; color:var(--text-light); }
+    .login-link a { color:var(--primary); font-weight:600; text-decoration:none; }
+    .login-link a:hover { text-decoration:underline; }
+
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width:480px){
+      .register-card{padding:2rem 1.5rem;border-radius:18px}
+      .brand-logo h1{font-size:1.8rem}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="register-wrapper">
+    <div class="register-card">
+      <div class="brand-logo">
+        <h1>E-Shop</h1>
+        <p>Create your professional account</p>
+      </div>
+
+  <form method="POST">
+    {% csrf_token %}  
+  <!-- Username -->
+  <div class="form-group">
+    <input type="text" class="form-control-custom" name="username" placeholder=" " required>
+    <label class="form-label-custom">Username</label>
+    <i class="fas fa-user input-icon"></i>
+  </div>
+
+  <!-- Email -->
+  <div class="form-group">
+    <input type="email" class="form-control-custom" name="email" placeholder=" " required>
+    <label class="form-label-custom">Email Address</label>
+    <i class="fas fa-envelope input-icon"></i>
+  </div>
+
+  <!-- Contact -->
+  <div class="form-group">
+    <input type="text" class="form-control-custom" name="contact" placeholder=" ">
+    <label class="form-label-custom">Phone Number</label>
+    <i class="fas fa-phone input-icon"></i>
+  </div>
+
+  <!-- Address -->
+  <div class="form-group">
+    <textarea class="form-control-custom" name="address" rows="2" placeholder=" " style="resize:none;padding-top:1.2rem;"></textarea>
+    <label class="form-label-custom">Address</label>
+    <i class="fas fa-map-marker-alt input-icon" style="top:1.4rem;"></i>
+  </div>
+
+  <!-- Default Role -->
+  <input type="hidden" name="role" value="buyer">
+
+  <!-- Password -->
+  <div class="form-group">
+    <input type="password" class="form-control-custom" name="password" placeholder=" " required>
+    <label class="form-label-custom">Password</label>
+    <i class="fas fa-lock input-icon"></i>
+  </div>
+
+  <!-- Confirm Password -->
+  <div class="form-group">
+    <input type="password" class="form-control-custom" name="re_password" placeholder=" " required>
+    <label class="form-label-custom">Confirm Password</label>
+    <i class="fas fa-lock input-icon"></i>
+  </div>
+
+  <button type="submit" class="btn-register">Create Account</button>
+
+  <div class="login-link">
+    Already have an account? <a href="{% url 'login' %}">Sign in</a>
+  </div>
+</form>
+    </div>
+  </div>
+  {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+</body>
+</html>
