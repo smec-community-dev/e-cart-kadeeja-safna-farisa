@@ -3,32 +3,172 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile | E-Shop</title>
+  <title>{% block title %}My Account{% endblock %} | QuickKart</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #2874f0;
+      --primary-dark: #1e60d6;
+      --card-bg: #ffffff;
+      --text: #333;
+      --text-light: #666;
+      --border: #e0e0e0;
+    }
+
+    body {
+      background-color: #f1f3f6;
+      font-family: 'Roboto', sans-serif;
+      color: var(--text);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+    }
+
+    .user-info {
+      text-align: center;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .user-info h5 {
+      font-weight: 700;
+      color: var(--primary);
+      margin: 1rem 0 0.3rem;
+    }
+
+    .user-info p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    .nav-link {
+      color: #333 !important;
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin: 8px 0;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background: #e3f2fd;
+      color: var(--primary) !important;
+      transform: translateX(5px);
+    }
+
+    .nav-link.active {
+      background: var(--primary);
+      color: white !important;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(40, 116, 240, 0.3);
+    }
+
+    .nav-link.text-danger:hover {
+      background: #ffebee;
+      color: #d32f2f !important;
+    }
+
+    .main-content {
+      padding: 3rem 2rem;
+      background: #f8f9fa;
+      min-height: 100vh;
+    }
+
+    .page-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 992px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        z-index: 1000;
+        transition: 0.3s;
+      }
+      .sidebar.show { left: 0; }
+      .main-content { padding-top: 5rem; }
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="index.html">E-Shop</a>
-      <div>
-        <a href="cart.html" class="btn btn-light btn-sm me-2">Cart</a>
-        <a href="wishlist.html" class="btn btn-light btn-sm me-2">Wishlist</a>
-        <a href="logout.html" class="btn btn-secondary btn-sm">Logout</a>
+
+<div class="container-fluid p-0">
+  <div class="row g-0">
+
+    <!-- Sidebar -->
+    <div class="col-lg-3 sidebar" id="sidebar">
+      <div class="user-info">
+        <div class="bg-primary text-white rounded-circle mx-auto d-flex align-items-center justify-content-center" style="width:90px;height:90px;">
+          <i class="fas fa-user fs-3"></i>
+        </div>
+        <h5>{{ request.user.get_full_name|default:request.user.username }}</h5>
+        <p>{{ request.user.email }}</p>
+      </div>
+
+      <nav class="nav flex-column">
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          Dashboard
+        </a>
+        <a href="{% url 'edit_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+          Edit Profile
+        </a>
+        <a href="{% url 'address' %}" class="nav-link {% if request.resolver_match.url_name == 'address' %}active{% endif %}">
+          My Addresses
+        </a>
+        <a href="{% url 'orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+          My Orders
+        </a>
+        <a href="{% url 'view_wishlist' %}" class="nav-link {% if request.resolver_match.url_name == 'view_wishlist' %}active{% endif %}">
+         Wishlist <span class="badge bg-danger ms-2">{{ wishlist_count|default:0 }}</span>
+        </a>
+        <a href="{% url 'password_change' %}" class="nav-link {% if request.resolver_match.url_name == 'password_change' %}active{% endif %}">
+          Change Password
+        </a>
+        <hr class="my-4">
+        <a href="{% url 'logout' %}" class="nav-link text-danger">
+          Logout
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9 main-content">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show rounded-4" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="page-card">
+        {% block content %}
+        {% endblock %}
       </div>
     </div>
-  </nav>
-
-  <div class="container mt-5 col-md-6">
-    <h3 class="fw-bold mb-4 text-center">My Profile</h3>
-    <div class="card shadow-sm p-4">
-      <p><strong>Username:</strong> JohnDoe</p>
-      <p><strong>Email:</strong> john@example.com</p>
-      <p><strong>Role:</strong> Buyer</p>
-      <button class="btn btn-primary w-100 mt-3">Edit Profile</button>
-    </div>
   </div>
+</div>
 
-  <footer><p>© 2025 E-Shop</p></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,37 @@
+{% extends 'user/profile.html' %}
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold text-primary">My Wishlist</h2>
+
+{% if wishlist %}
+  <div class="row g-4">
+    {% for item in wishlist %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        {% with item.product.productimage_set.first as img %}
+          <img src="{% if img %}{{ img.image.url }}{% else %}https://via.placeholder.com/300{% endif %}" class="card-img-top" style="height:200px; object-fit:cover;">
+        {% endwith %}
+        <div class="card-body d-flex flex-column">
+          <h6 class="card-title">{{ item.product.product_name|truncatechars:50 }}</h6>
+          <p class="text-primary fw-bold fs-5">₹{{ item.product.product_price }}</p>
+          <div class="mt-auto">
+            <a href="{% url 'add_to_cart' item.product.slug %}" class="btn btn-primary w-100 mb-2">Add to Cart</a>
+            <form action="{% url 'wishlist' item.product.slug %}" method="post" class="d-inline w-100">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger w-100">Remove</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-center py-5">
+    <i class="fas fa-heart fs-1 text-muted"></i>
+    <h4 class="mt-3 text-muted">Your wishlist is empty</h4>
+    <a href="{% url 'index' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+  </div>
+{% endif %}
+{% endblock %}

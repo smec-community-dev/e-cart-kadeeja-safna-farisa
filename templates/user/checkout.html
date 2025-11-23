@@ -1,237 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Checkout | E-Shop</title>
-  {% load cart_extras %}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #4f46e5;
-      --primary-dark: #4338ca;
-      --text: #1e293b;
-      --text-light: #64748b;
-      --card-bg: rgba(255, 255, 255, 0.88);
-      --border: rgba(255, 255, 255, 0.3);
-      --shadow: 0 12px 32px rgba(79, 70, 229, 0.18);
-      --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Manrope', sans-serif; }
-    body {
-      background: var(--gradient);
-      color: var(--text);
-      min-height: 100vh;
-      padding-top: 80px;
-    }
+{% extends 'user/base.html' %}
+{% load static %}
+{% load cart_extras %}
+{% block title %}Checkout - QuickKart{% endblock %}
 
-    /* Navbar */
-    .navbar {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,.08);
-    }
-    .navbar-brand {
-      font-weight: 800;
-      font-size: 1.9rem;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+{% block content %}
 
-    /* Checkout Container */
-    .checkout-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border-radius: 24px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .checkout-header {
-      background: linear-gradient(90deg, #4f46e5, #8b5cf6);
-      color: white;
-      padding: 1.5rem;
-      text-align: center;
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
+<div class="container my-5">
+    <div class="row g-5">
 
-    /* Section Styling */
-    .section-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid #e0e7ff;
-    }
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.75rem 0;
-      border-bottom: 1px dashed #e2e8f0;
-      font-size: 1rem;
-    }
-    .info-label { color: var(--text-light); font-weight: 500; }
-    .info-value { font-weight: 600; color: var(--text); }
+        <!-- LEFT: Address + Payment -->
+        <div class="col-lg-8">
 
-    /* Cart Items */
-    .cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.9rem 0;
-      border-bottom: 1px solid #f1f5f9;
-    }
-    .cart-item img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 12px;
-      margin-right: 1rem;
-    }
-    .item-details { flex: 1; }
-    .item-name { font-weight: 600; font-size: 1rem; }
-    .item-price { color: var(--primary); font-weight: 700; }
+            <h2 class="fw-bold text-primary mb-4">Checkout</h2>
 
-    /* Total & Button */
-    .total-row {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: var(--primary);
-      padding: 1.2rem 0;
-      border-top: 3px double #c4b5fd;
-      margin-top: 1rem;
-    }
-    .btn-place-order {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border: none;
-      border-radius: 16px;
-      padding: 1rem;
-      font-size: 1.2rem;
-      font-weight: 700;
-      width: 100%;
-      margin-top: 1.5rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 25px rgba(79,70,229,.3);
-    }
-    .btn-place-order:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 15px 35px rgba(79,70,229,.4);
-    }
-
-    /* Footer */
-    footer {
-      background: rgba(30, 41, 59, 0.95);
-      color: #cbd5e1;
-      text-align: center;
-      padding: 2rem;
-      margin-top: 4rem;
-      font-size: 0.95rem;
-    }
-
-    @media (max-width: 768px) {
-      .checkout-card { margin: 1rem; border-radius: 18px; }
-      .checkout-header { font-size: 1.3rem; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'home' %}">E-Shop</a>
-    </div>
-  </nav>
-
-  <!-- Main Checkout -->
-  <div class="container my-5">
-    <div class="checkout-card">
-      <div class="checkout-header">
-        Checkout
-      </div>
-
-      <form method="POST" class="p-4 p-md-5">
-        {% csrf_token %}
-        <div class="row g-5">
-
-          <!-- Shipping Details -->
-          <div class="col-lg-6">
-            <h5 class="section-title">
-              Shipping Details
-            </h5>
-            <div class="bg-light p-4 rounded-3">
-              <div class="info-item">
-                <span class="info-label">Name</span>
-                <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Contact</span>
-                <span class="info-value">{{ user.contact|default:"Not provided" }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Delivery Address</span>
-                <span class="info-value">{{ user.address|default:"Not provided" }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Order Summary -->
-          <div class="col-lg-6">
-            <h5 class="section-title">
-              Order Summary
-            </h5>
-            <div class="bg-light p-4 rounded-3">
-              {% for item in cart_item %}
-                <div class="cart-item">
-<!--                  {% with item.product.productimage_set.first as img %}-->
-<!--                    {% if img %}-->
-<!--                      <img src="{{ img.image.url }}" alt="{{ item.product.product_name }}">-->
-<!--                    {% else %}-->
-<!--                      <div class="bg-secondary-subtle d-flex align-items-center justify-content-center rounded-3" style="width:60px;height:60px;">-->
-<!--                        <i class="fas fa-box text-muted"></i>-->
-<!--                      </div>-->
-<!--                    {% endif %}-->
-<!--                  {% endwith %}-->
-                  <div class="item-details">
-                    <div class="item-name">{{ item.product.product_name }}</div>
-                    <small class="text-muted">Qty: {{ item.quantity }}</small>
-                  </div>
-                  <div class="item-price">₹{{ item.product.product_price|multiply:item.quantity }}</div>
+            <!-- User Name & Contact -->
+            <div class="bg-primary bg-opacity-10 rounded-4 p-4 mb-4 border border-primary">
+                <div class="row text-dark">
+                    <div class="col-md-6">
+                        <p class="mb-1 fw-semibold">Name</p>
+                        <h5 class="fw-bold">{{ user.get_full_name|default:user.username }}</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1 fw-semibold">Contact</p>
+                        <h5 class="fw-bold">{{ user.contact|default:user.email|default:"Not provided" }}</h5>
+                    </div>
                 </div>
-              {% empty %}
-                <p class="text-center text-muted py-4">Your cart is empty</p>
-              {% endfor %}
-
-              <div class="total-row text-end">
-                Total: ₹{{ total }}
-              </div>
-
-              <button type="submit" class="btn-place-order">
-                Place Order
-              </button>
             </div>
-          </div>
+
+            <!-- Delivery Address -->
+            <div class="bg-white rounded-4 shadow-lg p-5 mb-4">
+                <h5 class="fw-bold mb-4">Delivery Address</h5>
+
+                <form method="POST" id="checkoutForm">
+                    {% csrf_token %}
+
+                    {% if addresses %}
+                        <div class="row g-4">
+                            {% for addr in addresses %}
+                                <div class="col-12">
+                                    <label class="border rounded-4 p-4 d-block cursor-pointer {% if forloop.first %}border-primary bg-primary bg-opacity-10{% endif %}">
+                                        <input type="radio" name="address_id" value="{{ addr.id }}" class="me-3" {% if forloop.first %}checked{% endif %}>
+                                        <strong>{{ addr.receiver_name|default:user.get_full_name }}</strong>
+                                        {% if addr.is_default %}<span class="badge bg-success ms-2">Default</span>{% endif %}
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ addr.address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}<br>
+                                            Phone: {{ addr.phone }}
+                                        </small>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-danger">No address found!</p>
+                            <a href="{% url 'add_address' %}" class="btn btn-primary">Add Address</a>
+                        </div>
+                    {% endif %}
+                </form>
+
+                <div class="mt-4">
+                    <a href="{% url 'add_address' %}" class="btn btn-outline-primary">
+                        Add New Address
+                    </a>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="bg-white rounded-4 shadow-lg p-5">
+                <h5 class="fw-bold mb-4">Payment Method</h5>
+                <div class="p-4 bg-light rounded-4">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="payment_method" value="cod" checked>
+                        <label class="form-check-label fw-bold">Cash on Delivery (COD)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="payment_method" value="online">
+                        <label class="form-check-label fw-bold">Pay Online (UPI/Card/Net Banking)</label>
+                    </div>
+                </div>
+            </div>
         </div>
-      </form>
+
+        <!-- RIGHT: Order Summary — Works with Your View's Variables -->
+        <div class="col-lg-4">
+            <div class="bg-white rounded-4 shadow-lg p-4 sticky-top" style="top: 100px;">
+                <h5 class="fw-bold text-primary border-bottom pb-3">Order Summary</h5>
+
+                <!-- CASE 1: Buy Now (single product) -->
+                {% if request.GET.buy_now %}
+                    <div class="d-flex mb-3 pb-3 border-bottom">
+                        {% with cart_item.productimage_set.first as img %}
+                            <img src="{% if img %}{{ img.image.url }}{% else %}https://via.placeholder.com/80{% endif %}"
+                                 class="rounded-3 me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% endwith %}
+                        <div class="flex-grow-1">
+                            <h6 class="fw-semibold small">{{ cart_item.product_name|truncatechars:35 }}</h6>
+                            <small class="text-muted">Qty: {{ quantity }}</small>
+                        </div>
+                        <strong class="text-end">₹{{ cart_item.product_price|multiply:quantity }}</strong>
+                    </div>
+
+                <!-- CASE 2: Normal Cart Checkout -->
+                {% else %}
+                    {% for item in cart_item %}
+                        <div class="d-flex mb-3 pb-3 border-bottom">
+                            {% with item.product.productimage_set.first as img %}
+                                <img src="{% if img %}{{ img.image.url }}{% else %}https://via.placeholder.com/80{% endif %}"
+                                     class="rounded-3 me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% endwith %}
+                            <div class="flex-grow-1">
+                                <h6 class="fw-semibold small">{{ item.product.product_name|truncatechars:35 }}</h6>
+                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            </div>
+                            <strong class="text-end">₹{{ item.product.product_price|multiply:item.quantity }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal</span>
+                    <strong>₹{{ total }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span>Delivery</span>
+                    <span class="text-success fw-bold">FREE</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center py-3 border-top">
+                    <h5 class="fw-bold m-0">Total Payable</h5>
+                    <h4 class="text-primary fw-bold m-0">₹{{ total }}</h4>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'checkout' %}?clear=true" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Change / Cancel Items
+                    </a>
+                </div>
+                <button type="submit" form="checkoutForm" class="btn btn-success btn-lg w-100 rounded-pill shadow mt-3">
+                    Place Order • ₹{{ total }}
+                </button>
+
+                <div class="text-center small text-muted mt-3">
+                    Estimated delivery in 2–5 days
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
 
-  <!-- Footer -->
-  <footer>
-    <p>© {% now "Y" %} E-Shop. All rights reserved.</p>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

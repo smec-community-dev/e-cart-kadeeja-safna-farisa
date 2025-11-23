@@ -1,0 +1,133 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if selected_category %}{{ selected_category.category_name }}{% else %}All Products{% endif %} - QuickKart
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="bg-primary text-white py-4">
+  <div class="container">
+    <h2 class="mb-0 fw-bold">
+      {% if selected_subcategory %}
+        {{ selected_subcategory.sub_category_name }}
+      {% elif selected_category %}
+        {{ selected_category.category_name }}
+      {% else %}
+        All Products
+      {% endif %}
+      <small class="fs-6 opacity-75">({{ page_obj.paginator.count }} items)</small>
+    </h2>
+  </div>
+</div>
+
+<div class="container my-5">
+  <div class="row">
+
+    <!-- LEFT SIDEBAR: Filters -->
+    <div class="col-lg-3 mb-4">
+      <div class="bg-white rounded shadow-sm p-4 sticky-top" style="top: 100px;">
+        <h5 class="fw-bold mb-4 d-flex justify-content-between">
+          Filters
+          <a href="{% url 'shop' %}" class="btn btn-sm btn-outline-danger">Clear All</a>
+        </h5>
+
+        <!-- ==== PRICE FILTER (fully working) ==== -->
+        <div class="mb-5">
+          <h6 class="fw-bold text-primary mb-3">Price Range</h6>
+          <form method="get" id="priceForm">
+            <!-- Keep existing filters (category, search, page) -->
+            {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+            {% if request.GET.page %}<input type="hidden" name="page" value="{{ request.GET.page }}">{% endif %}
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <input type="number" name="price__gte" value="{{ request.GET.price__gte|default:'' }}"
+                     class="form-control form-control-sm" placeholder="Min ₹" min="0">
+              <span class="text-muted">to</span>
+              <input type="number" name="price__lte" value="{{ request.GET.price__lte|default:'' }}"
+                     class="form-control form-control-sm" placeholder="Max ₹" min="0">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Apply Price</button>
+          </form>
+        </div>
+
+        <!-- ==== CATEGORIES & SUBCATEGORIES ==== -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary">Categories</h6>
+          {% for cat in categories %}
+            <div class="mb-3">
+              <a href="{% url 'shop_by_category' cat.category_id %}"
+                 class="d-block fw-bold {% if selected_category.id == cat.id %}text-primary{% else %}text-dark{% endif %}">
+                {{ cat.category_name }}
+              </a>
+              {% for subcat in cat.subcategory_set.all %}
+                <a href="{% url 'shop_by_subcategory' subcat.sub_category_id %}"
+                   class="d-block small ms-4 {% if selected_subcategory.id == subcat.id %}text-primary fw-bold{% else %}text-muted{% endif %}">
+                  → {{ subcat.sub_category_name }}
+                </a>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: Search + Products -->
+    <div class="col-lg-9">
+
+      <!-- Search Bar -->
+      <form method="get" class="mb-4">
+        <div class="input-group input-group-lg">
+          <input type="text" name="q" value="{{ query }}" class="form-control"
+                 placeholder="Search in current products...">
+          <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+      </form>
+
+      <!-- Products Grid -->
+      {% if page_obj %}
+        <div class="row g-4">
+          {% for product in page_obj %}
+          <div class="col-6 col-md-4 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm hover-shadow">
+              {% with product.productimage_set.first as img %}
+                <img src="{% if img %}{{ img.image.url }}{% else %}https://via.placeholder.com/300{% endif %}"
+                     class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ product.product_name }}">
+              {% endwith %}
+              <div class="card-body d-flex flex-column">
+                <h6 class="card-title fw-bold">{{ product.product_name|truncatechars:50 }}</h6>
+                <p class="text-primary fs-5 fw-bold">₹{{ product.product_price }}</p>
+                {% if product.stock > 0 %}
+                  <span class="badge bg-success mb-2">In Stock</span>
+                {% else %}
+                  <span class="badge bg-danger mb-2">Out of Stock</span>
+                {% endif %}
+                <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary mt-auto">
+                  View Details
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination (still works perfectly) -->
+        <div class="mt-5">
+          {% include 'user/pagination.html' %}
+        </div>
+
+      {% else %}
+        <div class="text-center py-5">
+          <h4>No products found</h4>
+          <p>Try adjusting your filters.</p>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

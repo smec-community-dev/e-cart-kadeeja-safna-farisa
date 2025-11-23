@@ -1,0 +1,26 @@
+{% extends 'user/profile.html' %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold text-primary">Edit Profile</h2>
+
+<form method="post" class="row g-4">
+  {% csrf_token %}
+  <div class="col-md-6">
+    <label class="form-label fw-bold">Username</label>
+    <input type="text" name="username" class="form-control" value="{{ request.user.username }}" required>
+  </div>
+  <div class="col-md-6">
+    <label class="form-label fw-bold">Email</label>
+    <input type="email" name="email" class="form-control" value="{{ request.user.email }}" required>
+  </div>
+  <div class="col-12">
+    <label class="form-label fw-bold">Phone</label>
+    <input type="text" name="contact" class="form-control" value="{{ request.user.contact|default:'' }}">
+  </div>
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary btn-lg px-5">Save Changes</button>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg px-5 ms-3">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -55,7 +55,7 @@ class Orders(models.Model):
 
 class OrderItem(models.Model):
     order=models.ForeignKey('Orders',on_delete=models.CASCADE)
-    Product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity=models.IntegerField()
 
     class Meta:
@@ -90,3 +90,14 @@ class Address(models.Model):
 
     class Meta:
         db_table="user_address"
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        db_table="contact messages"

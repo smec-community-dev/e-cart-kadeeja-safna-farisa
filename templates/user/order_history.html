@@ -1,31 +1,117 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order History | E-Shop</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <nav class="navbar navbar-expand-lg">
-    <div class="container">
-      <a class="navbar-brand fw-bold" href="index.html">E-Shop</a>
-    </div>
-  </nav>
+{% extends 'user/base.html' %}
+{% load static %}
 
-  <div class="container mt-5">
-    <h3 class="fw-bold mb-4">My Orders</h3>
-    <table class="table">
-      <thead>
-        <tr><th>Order ID</th><th>Date</th><th>Amount</th><th>Status</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>#1001</td><td>2025-11-09</td><td>$59.99</td><td><span class="badge bg-success">Delivered</span></td></tr>
-      </tbody>
-    </table>
-  </div>
+{% block title %}My Orders - QuickKart{% endblock %}
 
-  <footer><p>© 2025 E-Shop</p></footer>
-</body>
-</html>
+{% block content %}
+
+<div class="container my-5">
+    <h2 class="fw-bold text-primary text-center mb-5">
+        My Orders
+    </h2>
+
+    {% if orders %}
+        <div class="row g-4">
+            {% for order in orders %}
+                <div class="col-12">
+                    <div class="bg-white rounded-4 shadow-lg overflow-hidden">
+                        <div class="bg-light border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1 small text-muted">Order ID</p>
+                                <h6 class="fw-bold text-dark">#{{ order.order_id }}</h6>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-1 small text-muted">Order Date</p>
+                                <h6 class="fw-bold">{{ order.order_date|date:"d M, Y" }}</h6>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-1 small text-muted">Total Amount</p>
+                                <h5 class="fw-bold text-primary">₹{{ order.amount }}</h5>
+                            </div>
+                        </div>
+
+                        <div class="p-4">
+                            <!-- Order Status Badge -->
+                            <div class="mb-4">
+                                {% if order.order_status == 'Delivered' %}
+                                    <span class="badge bg-success fs-6 px-4 py-2">
+                                        Delivered
+                                    </span>
+                                {% elif order.order_status == 'Cancelled' %}
+                                    <span class="badge bg-danger fs-6 px-4 py-2">Cancelled</span>
+                                {% elif order.order_status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark fs-6 px-4 py-2">Pending</span>
+                                {% elif order.order_status == 'Shipped' %}
+                                    <span class="badge bg-info text-dark fs-6 px-4 py-2">Shipped</span>
+                                {% else %}
+                                    <span class="badge bg-secondary fs-6 px-4 py-2">{{ order.order_status }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Delivery Address -->
+                            <div class="mb-4 p-3 bg-light rounded-3">
+                                <p class="mb-1 fw-bold text-dark">
+                                    Delivery Address
+                                </p>
+                                <p class="text-muted small">
+                                    <strong>{{ order.address.user.username }}</strong><br>
+                                    {{ order.address.address }}<br>
+                                </p>
+                            </div>
+
+                            <!-- Ordered Items -->
+                            <div class="row g-4">
+                                {% for item in order.orderitem_set.all %}
+                                    <div class="col-md-6">
+                                        <div class="d-flex gap-3 align-items-center p-3 border rounded-3 bg-light">
+                                            {% with item.product.productimage_set.first as img %}
+                                                <img src="{% if img %}{{ img.image.url }}{% else %}https://via.placeholder.com/100{% endif %}"
+                                                     class="rounded-3 shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
+                                            {% endwith %}
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-semibold mb-1">{{ item.product.product_name|truncatechars:45 }}</h6>
+                                                <p class="text-muted small mb-1">Qty: {{ item.quantity }}</p>
+                                                <p class="text-primary fw-bold">₹{{ item.product.product_price }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="mt-4 text-end">
+                                {% if item.order.order_status == 'Delivered' %}
+                                    {% if not item.has_reviewed %}
+                                        <a href="{% url 'product_detail' item.product.slug %}#write-review"
+                                           class="btn btn-success btn-sm">
+                                            Write Review
+                                        </a>
+                                    {% else %}
+                                        <span class="badge bg-success">Reviewed</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-{{ item.order.order_status|lower }} text-white">
+                                        {{ item.order.order_status }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fs-1 text-muted mb-4"></i>
+            <h4 class="text-muted">No orders placed yet</h4>
+            <p class="text-muted">When you place an order, it will appear here.</p>
+            <a href="{% url 'index' %}" class="btn btn-primary btn-lg mt-3 rounded-pill px-5">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

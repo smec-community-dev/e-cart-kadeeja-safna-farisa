@@ -1,0 +1,53 @@
+{% extends 'user/profile.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mb-5 fw-bold text-primary">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h2>
+
+<div class="row g-4 mb-5">
+  <div class="col-md-4">
+    <div class="text-center p-4 bg-white rounded-4 shadow">
+      <i class="fas fa-box fs-1 text-primary mb-3"></i>
+      <h3>{{ orders_count|default:0 }}</h3>
+      <p class="text-muted">Total Orders</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="text-center p-4 bg-white rounded-4 shadow">
+      <i class="fas fa-heart fs-1 text-danger mb-3"></i>
+      <h3>{{ wishlist_count|default:0 }}</h3>
+      <p class="text-muted">Wishlist Items</p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="text-center p-4 bg-white rounded-4 shadow">
+      <i class="fas fa-map-marker-alt fs-1 text-success mb-3"></i>
+      <h3>{{ addresses_count|default:0 }}</h3>
+      <p class="text-muted">Saved Addresses</p>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white rounded-4 shadow p-4">
+  <h5 class="fw-bold text-primary mb-3">Recent Orders</h5>
+  {% if recent_orders %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Order ID</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr>
+            <td>#{{ order.order_id }}</td>
+            <td>{{ order.order_date|date:"d M Y" }}</td>
+            <td>₹{{ order.amount }}</td>
+            <td><span class="badge bg-{% if order.order_status == 'Delivered' %}success{% else %}warning{% endif %}">{{ order.order_status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted text-center py-4">No orders yet. Start shopping!</p>
+  {% endif %}
+</div>
+{% endblock %}
