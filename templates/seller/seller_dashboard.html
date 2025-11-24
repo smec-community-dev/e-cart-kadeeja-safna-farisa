@@ -56,8 +56,8 @@
       </div>
       <a href="{% url 'seller_dashboard'%}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
       <a href="{% url 'add_product'%}"><i class="bi bi-plus-circle"></i> Add Product</a>
-      <a href=""><i class="bi bi-grid"></i> Manage Products</a>
-      <a href=""><i class="bi bi-truck"></i> Orders</a>
+      <a href="{% url 'manage_product' %}"><i class="bi bi-grid"></i> Manage Products</a>
+      <a href="{% url 'manage_orders' %}"><i class="bi bi-truck"></i> Orders</a>
       <a href=""><i class="bi bi-wallet2"></i> Payments</a>
       <a href=""><i class="bi bi-bell"></i> Notifications</a>
       <a href=""><i class="bi bi-person"></i> Profile</a>

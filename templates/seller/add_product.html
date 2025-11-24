@@ -53,105 +53,156 @@
       border-radius: 8px;
       color: white;
     }
-  </style>
+        .preview-img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      border: 2px solid #ddd;
+    }
 
+  </style>
 </head>
+
 <body>
 
-  <div class="d-flex">
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
 
-    <!-- Sidebar -->
-    <div class="sidebar col-md-2">
-      <div class="text-center mb-4">
-        <h5>TechHub Store</h5>
-      </div>
+<div class="d-flex">
 
-      <a href="{% url 'seller_dashboard' %}" ><i class="bi bi-speedometer2"></i> Dashboard</a>
-      <a href="{% url 'add_product' %}" class="active"><i class="bi bi-plus-circle"></i> Add Product</a>
-      <a href=""><i class="bi bi-grid"></i> Manage Products</a>
-      <a href=""><i class="bi bi-truck"></i> Orders</a>
-      <a href=""><i class="bi bi-wallet2"></i> Payments</a>
-      <a href=""><i class="bi bi-bell"></i> Notifications</a>
-      <a href=""><i class="bi bi-person"></i> Profile</a>
-      <a href="" class="text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar col-md-2">
+    <div class="text-center mb-4">
+      <h5>TechHub Store</h5>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex-grow-1 p-4">
-
-      <h2>Add New Product</h2>
-
-      <form class="bg-white p-4 rounded shadow" method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-
-        <div class="row g-3">
-
-          <div class="col-md-6">
-            <label>Product Name</label>
-            <input type="text" name="name" class="form-control" required>
-          </div>
-
-          <div class="col-md-6">
-            <label>Category</label>
-            <select name="category" class="form-select" required>
-              {% for cat in categories %}
-              <option value="{{ cat.id }}">{{ cat.category_name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label>Description</label>
-            <textarea name="description" class="form-control" rows="3"></textarea>
-          </div>
-
-          <div class="col-md-4">
-            <label>Price (₹)</label>
-            <input type="number" name="price" class="form-control" required>
-          </div>
-
-          <div class="col-md-4">
-            <label>Stock</label>
-            <input type="number" name="stock" class="form-control" required>
-          </div>
-
-          <!-- Image Upload Inputs -->
-          <div class="col-md-12">
-            <label>Product Images</label>
-
-            <div id="image-container">
-              <input type="file" name="images" class="form-control mb-2" accept="image/*">
-            </div>
-
-            <button type="button" class="btn btn-secondary mt-2" onclick="addImageField()">
-              + Add More Images
-            </button>
-          </div>
-
-          <div class="col-12 mt-3">
-            <button type="submit" class="btn btn-add">
-              <i class="bi bi-check-circle"></i> Add Product
-            </button>
-          </div>
-
-        </div>
-
-      </form>
-
-      <script>
-        function addImageField() {
-          let container = document.getElementById("image-container");
-          let input = document.createElement("input");
-          input.type = "file";
-          input.name = "images";
-          input.className = "form-control mb-2";
-          input.accept = "image/*";
-          container.appendChild(input);
-        }
-      </script>
-
-    </div>
+    <a href="{% url 'seller_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{% url 'add_product' %}" class="active"><i class="bi bi-plus-circle"></i> Add Product</a>
+    <a href="{% url 'manage_product' %}"><i class="bi bi-grid"></i> Manage Products</a>
+    <a href="#"><i class="bi bi-truck"></i> Orders</a>
+    <a href="#"><i class="bi bi-wallet2"></i> Payments</a>
+    <a href="#"><i class="bi bi-bell"></i> Notifications</a>
+    <a href="#"><i class="bi bi-person"></i> Profile</a>
+    <a href="#" class="text-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
   </div>
 
+  <!-- Main Content -->
+  <div class="flex-grow-1 p-4">
+
+    <h2>Add New Product</h2>
+
+    <form class="bg-white p-4 rounded shadow" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label>Product Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+
+        <div class="col-md-6">
+          <label>Subcategory</label>
+          <select name="subcategory" class="form-select" required>
+            {% for sub in subcategories %}
+            <option value="{{ sub.sub_category_id }}">{{ sub.sub_category_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label>Description</label>
+          <textarea name="description" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="col-md-4">
+          <label>Price (₹)</label>
+          <input type="number" name="price" class="form-control" required>
+        </div>
+
+        <div class="col-md-4">
+          <label>Stock</label>
+          <input type="number" name="stock" class="form-control" required>
+        </div>
+
+        <!-- MULTIPLE IMAGE INPUTS -->
+        <div class="col-md-12">
+          <label>Product Images</label>
+
+          <div id="image-fields">
+            <input type="file" name="images" class="form-control mb-2" accept="image/*" required>
+          </div>
+          <div id="preview-area" class="d-flex flex-wrap mt-3"></div>
+
+
+          <button type="button" id="add-image" class="btn btn-secondary btn-sm mt-2">
+            + Add More Images
+          </button>
+        </div>
+
+        <div class="col-12 mt-3">
+          <button type="submit" class="btn btn-add">
+            <i class="bi bi-check-circle"></i> Add Product
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+    <script>
+        const container = document.getElementById("image-fields");
+        const addBtn = document.getElementById("add-image");
+        const previewArea = document.getElementById("preview-area");
+
+        // Add more image fields
+        addBtn.addEventListener("click", () => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.name = "images";
+            input.accept = "image/*";
+            input.className = "form-control mb-2";
+            input.addEventListener("change", updatePreview);
+            container.appendChild(input);
+        });
+
+        // Preview images
+        function updatePreview() {
+            previewArea.innerHTML = ""; // Clear previous
+
+            // Get ALL file inputs
+            const allInputs = container.querySelectorAll("input[type='file']");
+
+            allInputs.forEach(input => {
+                [...input.files].forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        let img = document.createElement("img");
+                        img.src = event.target.result;
+                        img.className = "preview-img";
+                        previewArea.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        }
+
+        // Attach preview to the FIRST input
+        document.querySelector("#image-fields input").addEventListener("change", updatePreview);
+    </script>
+
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
