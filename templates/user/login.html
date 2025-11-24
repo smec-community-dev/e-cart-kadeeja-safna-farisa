@@ -1,6 +1,6 @@
 {% extends 'user/base.html' %}
 {% load static %}
-
+{% load socialaccount %}
 {% block title %}Login • QuickKart{% endblock %}
 
 {% block content %}
@@ -55,6 +55,18 @@
                 Login
               </button>
             </form>
+
+            <div class="mt-4">
+                <div class="text-center text-muted mb-3">
+                    <small>────────── or continue with ──────────</small>
+                </div>
+
+                <a href="{% provider_login_url 'google' %}?next={{ next|default:'/' }}"
+                   class="btn btn-outline-danger w-100 py-3 rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-3 fw-bold">
+                    <img src="https://www.google.com/favicon.ico" width="20" height="20" alt="Google">
+                    Continue with Google
+                </a>
+            </div>
 
             <div class="text-center mt-4">
               <p class="text-muted mb-0">

@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hpon!w^beeqj+&o9cgc@pulmeypsu!83syc*_z3s$u=&zaj*(e'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,6 +42,12 @@ INSTALLED_APPS = [
     'CoreApp',
     'UserApp',
     'SellerApp',
+    'django.contrib.sites',                  # ← MUST ADD
+
+    'allauth',                               # ← Main allauth
+    'allauth.account',                       # ← Email/password login
+    'allauth.socialaccount',                 # ← Social logins (Google, etc.)
+    'allauth.socialaccount.providers.google',  #
 ]
 
 MIDDLEWARE = [
@@ -51,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'Ecart.urls'
@@ -128,3 +136,28 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+SITE_ID = 1                                      # ← Required for allauth
+SOCIALACCOUNT_LOGIN_ON_GET = True
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',        # Normal login
+    'allauth.account.auth_backends.AuthenticationBackend',  # allauth login
+]
+
+LOGIN_REDIRECT_URL = '/'         # Where to go after login
+LOGOUT_REDIRECT_URL = '/'        # Where to go after logout
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+        "APP": {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "key": ""
+        }
+    }
+}
+ACCOUNT_EMAIL_REQUIRED = True          # Force email from Google
+ACCOUNT_USERNAME_REQUIRED = False      # No username needed
+ACCOUNT_AUTHENTICATION_METHOD = 'email' # Login using email
