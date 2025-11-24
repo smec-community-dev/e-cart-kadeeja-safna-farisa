@@ -5,258 +5,386 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Manage Users</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
   <style>
     :root {
       --primary-color: #1E40AF;
       --secondary-color: #3B82F6;
-      --background-color: #FFFFFF;
+      --background-color: #f8f9fa;
       --text-primary: #1F2937;
       --text-secondary: #6B7280;
       --success-color: #16A34A;
       --error-color: #DC2626;
       --highlight-color: #6366F1;
     }
+
     body {
-      background-color: #f8f9fa;
+      background-color: var(--background-color);
       color: var(--text-primary);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
     }
+
     /* Sidebar */
     .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
       background: var(--primary-color);
-      min-height: 100vh;
       padding-top: 1.5rem;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+      z-index: 1040;
+      transition: transform 0.3s ease;
+      transform: translateX(-100%);
     }
+
+    .sidebar.show {
+      transform: translateX(0);
+    }
+
     .sidebar h4 {
       color: white;
       font-weight: 600;
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
     }
+
     .sidebar a {
       color: rgba(255, 255, 255, 0.9);
-      padding: 0.75rem 1.2rem;
-      display: block;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       border-radius: 0.5rem;
       margin: 0.3rem 1rem;
       transition: all 0.3s ease;
       font-weight: 500;
+      text-decoration: none;
     }
+
     .sidebar a:hover,
     .sidebar a.active {
       background: var(--highlight-color);
       color: white;
-      transform: translateX(4px);
+      transform: translateX(6px);
     }
+
     .sidebar a i {
-      width: 24px;
+      font-size: 1.2rem;
+      width: 28px;
       text-align: center;
     }
-    /* Page Header */
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
+
+    /* Overlay when sidebar is open on mobile */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1030;
     }
-    .page-header h2 {
-      color: var(--text-primary);
+
+    .sidebar-overlay.show {
+      display: block;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: 0;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    /* Top Navbar (visible on mobile & tablet) */
+    .top-navbar {
+      display: none;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 0.75rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1020;
+    }
+
+    .top-navbar .navbar-brand {
       font-weight: 700;
+      color: var(--primary-color);
     }
-    /* Card */
+
+    /* Card & Table */
     .card {
       border: none;
       border-radius: 0.75rem;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       overflow: hidden;
+      margin-bottom: 1.5rem;
     }
-    .card-body {
-      padding: 1.5rem;
-    }
-    /* Table */
+
     .table thead {
       background: var(--primary-color);
       color: white;
     }
+
     .table thead th {
       font-weight: 600;
       border: none;
       padding: 1rem;
+      font-size: 0.95rem;
     }
+
     .table tbody td {
       vertical-align: middle;
-      padding: 1rem;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
+      padding: 0.9rem;
+      font-size: 0.95rem;
     }
+
     .table-hover tbody tr:hover {
-      background-color: rgba(99, 102, 241, 0.05);
+      background-color: rgba(99, 102, 241, 0.08);
     }
-    /* Badges */
-    .badge.bg-success {
-      background-color: var(--success-color) !important;
-      color: white;
+
+    /* Mobile table scroll */
+    .table-responsive-stack {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    .badge.bg-warning {
-      background-color: #F59E0B !important;
-      color: white;
-    }
-    .badge.bg-danger {
-      background-color: var(--error-color) !important;
-      color: white;
-    }
-    /* Buttons */
-    .btn-sm i {
-      font-size: 0.9rem;
-    }
-    .btn-warning {
-      background-color: #F59E0B;
-      border: none;
-      color: white;
-    }
-    .btn-warning:hover {
-      background-color: #D97706;
-    }
-    .btn-danger {
-      background-color: var(--error-color);
-      border: none;
-    }
-    .btn-danger:hover {
-      background-color: #B91C1C;
-    }
+
     /* Search & Filter */
     .search-filter {
-      display: flex;
-      gap: 1rem;
       margin-bottom: 1.5rem;
-      flex-wrap: wrap;
     }
+
     .search-filter .form-control,
-    .search-filter .form-select {
-      max-width: 300px;
+    .search-filter .btn {
+      border-radius: 0.5rem;
     }
-    /* Responsive */
-    @media (max-width: 768px) {
+
+    /* Buttons */
+    .btn-sm {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    /* Responsive Adjustments */
+    @media (min-width: 992px) {
       .sidebar {
-        position: fixed;
-        z-index: 1000;
-        width: 260px;
-        left: -260px;
-        transition: left 0.3s ease;
+        transform: translateX(0);
       }
-      .sidebar.show {
-        left: 0;
+      .main-content {
+        margin-left: 260px;
       }
-      .page-header {
+      .top-navbar,
+      .sidebar-overlay {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 991.98px) {
+      .top-navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .main-content {
+        padding-top: 70px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .search-filter {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+      }
+      .search-filter .form-control {
+        width: 100% !important;
+      }
+      .search-filter .btn {
+        width: 100%;
+      }
+      .page-header h2 {
+        font-size: 1.4rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar text-white col-md-2">
-      <h4 class="text-center mb-4">Admin Panel</h4>
-      <a href="admin_dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
-      <a href="manage_user" class="active"><i class="bi bi-people"></i> Users</a>
-      <a href="manage_sellers"><i class="bi bi-shop"></i> Sellers</a>
-      <a href="manage_categories"><i class="bi bi-grid"></i> Categories</a>
-      <a href="manage_products"><i class="bi bi-box"></i> Products</a>
-      <a href="manage_orders"><i class="bi bi-cart"></i> Orders</a>
-      <a href="manage_payments"><i class="bi bi-credit-card"></i> Payments</a>
-      <a href="admin_login"><i class="bi bi-box-arrow-right"></i> Logout</a>
-    </div>
 
-    <!-- Main Content -->
-    <div class="flex-fill p-4 p-md-5">
-      <div class="page-header">
-        <h2>Manage Buyers</h2>
-        <button class="btn btn-primary">
-          <i class="bi bi-person-plus"></i> Add Buyer
-        </button>
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h4><i class="bi bi-shield-lock"></i> Admin Panel</h4>
+    <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{% url 'manage_users' %}" class="active"><i class="bi bi-people"></i> Users</a>
+    <a href="{% url 'manage_sellers' %}"><i class="bi bi-shop"></i> Sellers</a>
+    <a href="{% url 'manage_categories' %}"><i class="bi bi-grid"></i> Categories</a>
+    <a href="{% url 'manage_products' %}"><i class="bi bi-box"></i> Products</a>
+    <a href="{% url 'manage_orders' %}"><i class="bi bi-cart"></i> Orders</a>
+    <a href="{% url 'manage_payments' %}"><i class="bi bi-credit-card"></i> Payments</a>
+    <a href=""><i class="bi bi-box-arrow-right"></i> Logout</a>
+  </div>
+
+  <!-- Top Navbar (Mobile & Tablet) -->
+  <div class="top-navbar">
+    <button class="btn btn-primary" onclick="toggleSidebar()">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <div class="navbar-brand">Manage Users</div>
+    <div></div> <!-- Spacer -->
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container-fluid">
+
+      <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+        <h2><i class="bi bi-people-fill"></i> Manage Buyers</h2>
       </div>
 
-      <!-- Search & Filter -->
-      <div class="search-filter">
-        <input type="text" class="form-control" placeholder="Search by name or email...">
-        <select class="form-select">
-          <option selected>buyer</option>
-        </select>
-        <select class="form-select">
-          <option>All Status</option>
-          <option>Active</option>
-          <option>Inactive</option>
-        </select>
-      </div>
+      <!-- Search -->
+      <form method="get" class="search-filter">
+        <div class="input-group" style="max-width: 500px;">
+          <input type="text" name="search" class="form-control" placeholder="Search by name or email..." value="{{ search|default:'' }}">
+          <button class="btn btn-primary" type="submit">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+      </form>
 
-      <!-- Users Table (Only Buyers) -->
+      <!-- Users Table -->
       <div class="card">
         <div class="card-body p-0">
-          <div class="table-responsive">
+          <div class="table-responsive-stack">
             <table class="table table-hover mb-0">
               <thead>
                 <tr>
-                  <th>Name</th>
+                  <th>User</th>
                   <th>Email</th>
                   <th>Contact</th>
-                  <th>Address</th>
-                  <th>Detail</th>
+                  <th>Details</th>
                   <th>Action</th>
                 </tr>
               </thead>
-            <tbody>
-              {% for u in users%}
-               {% if u.is_buyer and not u.is_superuser %}
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
-                        <i class="bi bi-person text-muted"></i>
-                      </div>
-                      {{u.username}}
-                    </div>
-                  </td>
-                  <td>{{u.email}}</td>
-                  <td>{{u.contact}}</td>
-                  <td>{{u.address}}</td>
-                  <td><a href="">More Details</a></td>
-                  <td><a href="">
-                      <button class="btn btn-sm btn-danger" title="reject">Block</button>
-                    </button></a></td>
-                </tr>
-                {% endif %}
-              {% endfor %}
-            </tbody>
+              <tbody>
+                {% for u in users %}
+                  {% if u.is_buyer and not u.is_superuser %}
+                    <tr>
+                      <td>
+                        <div class="d-flex align-items-center">
+                          <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <i class="bi bi-person text-primary"></i>
+                          </div>
+                          <div>
+                            <div class="fw-semibold">{{ u.username }}</div>
+                            <small class="text-muted">Buyer</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-truncate" style="max-width: 200px;">{{ u.email }}</td>
+                      <td>{{ u.contact|default:"N/A" }}</td>
+                      <td>
+                        <a href="{% url 'buyer_order_details' u.id %}" class="btn btn-sm btn-outline-primary">
+                          <i class="bi bi-eye"></i> View
+                        </a>
+                      </td>
+                      <!-- <td>
+                        {% if u.status %}
+                          <span class="badge bg-success">Active</span>
+                        {% else %}
+                          <span class="badge bg-danger">Blocked</span>
+                        {% endif %}
+                      </td> -->
+                      <td>
+                        {% if u.status %}
+                          <a href="{% url 'toggle_user_status' u.id %}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-slash-circle"></i> Block
+                          </a>
+                        {% else %}
+                          <a href="{% url 'toggle_user_status' u.id %}" class="btn btn-sm btn-warning text-white">
+                            <i class="bi bi-check-circle"></i> Unblock
+                          </a>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
             </table>
           </div>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div class="d-flex justify-content-between align-items-center mt-4">
-        <p class="text-muted mb-0">Showing 1 to 3 of 892 buyers</p>
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+        <p class="text-muted mb-0">
+          Showing page {{ users.number }} of {{ users.paginator.num_pages }} 
+        </p>
+
         <nav>
-          <ul class="pagination pagination-sm">
-            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+          <ul class="pagination pagination-sm mb-0">
+            {% if users.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Previous</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for num in users.paginator.page_range %}
+              {% if users.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% else %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+
+            {% if users.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Next</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">Next</span></li>
+            {% endif %}
           </ul>
         </nav>
       </div>
+
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Optional: Mobile menu toggle (if needed)
-    document.querySelectorAll('.navbar-toggler').forEach(toggler => {
-      toggler.addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.toggle('show');
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('show');
+      document.querySelector('.sidebar-overlay').classList.toggle('show');
+    }
+
+    // Auto-hide sidebar when clicking a link (mobile)
+    document.querySelectorAll('.sidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 992) {
+          toggleSidebar();
+        }
       });
+    });
+
+    // Clear search when input is empty
+    document.querySelector("input[name='search']").addEventListener("input", function() {
+      if (this.value === "" && "{{ search }}" !== "") {
+        setTimeout(() => {
+          if (this.value === "") {
+            window.location = window.location.pathname;
+          }
+        }, 800);
+      }
     });
   </script>
 </body>

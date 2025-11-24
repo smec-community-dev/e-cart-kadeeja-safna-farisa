@@ -87,6 +87,5 @@ class Payment(models.Model):
 class Address(models.Model):
     user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     address=models.TextField(null=False,blank=False)
-
     class Meta:
         db_table="user_address"

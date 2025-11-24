@@ -15,4 +15,8 @@ urlpatterns = [
     path('manage_payments',views.manage_payments,name='manage_payments'),
     path('approve_seller/<int:id>',views.approve_seller,name='approve_seller'),
     path('reject_seller/<int:id>',views.reject_seller,name='reject_seller'),
+    path('buyer_order_details/<int:id>',views.buyer_order_details,name='buyer_order_details'),
+    path('order_in_details',views.order_in_details,name='order_in_details'),
+    path("toggle_user_status/<int:user_id>/", views.toggle_user_status, name="toggle_user_status"),
+    path('manage_products',views.manage_products,name='manage_products')
 ]

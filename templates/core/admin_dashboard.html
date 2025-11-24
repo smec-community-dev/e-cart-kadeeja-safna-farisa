@@ -133,28 +133,28 @@
     <!-- Sidebar -->
     <div class="sidebar text-white col-md-2">
       <h4 class="text-center mb-4">Admin Panel</h4>
-      <a href="admin_dashboard" class="active">
+      <a href="{% url 'admin_dashboard' %}" class="active">
         <i class="bi bi-speedometer2"></i> Dashboard
       </a>
-      <a href="manage_users">
+      <a href="{% url 'manage_users' %}">
         <i class="bi bi-people"></i> Users
       </a>
-      <a href="manage_sellers">
+      <a href="{% url 'manage_sellers' %}">
         <i class="bi bi-shop"></i> Sellers
       </a>
-      <a href="manage_categories.html">
+      <a href="{% url 'manage_categories' %}">
         <i class="bi bi-grid"></i> Categories
       </a>
-      <a href="manage_products.html">
+      <a href="{% url 'manage_products' %}">
         <i class="bi bi-box"></i> Products
       </a>
-      <a href="manage_orders.html">
+      <a href="{% url 'manage_orders' %}">
         <i class="bi bi-cart"></i> Orders
       </a>
-      <a href="manage_payments.html">
+      <a href="{% url 'manage_payments' %}">
         <i class="bi bi-credit-card"></i> Payments
       </a>
-      <a href="admin_login.html">
+      <a href="">
         <i class="bi bi-box-arrow-right"></i> Logout
       </a>
     </div>
@@ -170,35 +170,39 @@
 
       <!-- Stats Grid -->
       <div class="row g-4 mt-3">
-        <div class="col-12 col-sm-6 col-lg-3">
-          <div class="stat-card text-center">
-            <i class="bi bi-people stat-icon"></i>
-            <h3>1,234</h3>
-            <p>Total Users</p>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card text-center">
+              <i class="bi bi-people stat-icon"></i>
+              <h3>{{ total_users }}</h3>
+              <p>Total Users</p>
+            </div>
           </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-          <div class="stat-card text-center">
-            <i class="bi bi-shop stat-icon"></i>
-            <h3>89</h3>
-            <p>Active Sellers</p>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card text-center">
+              <i class="bi bi-shop stat-icon"></i>
+              <h3>{{ total_sellers }}</h3>
+              <p>Active Sellers</p>
+            </div>
           </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-          <div class="stat-card text-center">
-            <i class="bi bi-box stat-icon"></i>
-            <h3>5,678</h3>
-            <p>Products</p>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card text-center">
+              <i class="bi bi-box stat-icon"></i>
+              <h3>{{ total_products }}</h3>
+              <p>Products</p>
+            </div>
           </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-          <div class="stat-card text-center">
-            <i class="bi bi-cart stat-icon"></i>
-            <h3>432</h3>
-            <p>Pending Orders</p>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card text-center">
+              <i class="bi bi-cart stat-icon"></i>
+              <h3>{{ pending_orders }}</h3>
+              <p>Pending Orders</p>
+            </div>
           </div>
-        </div>
       </div>
+
 
       <!-- Recent Activity -->
       <div class="mt-5">

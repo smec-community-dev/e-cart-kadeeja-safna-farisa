@@ -52,13 +52,24 @@ def admin_login(request):
     return render(request,'core/login.html')
 
 def admin_dashboard(request):
-    return render(request,"core/admin_dashboard.html")
+    total_users = User.objects.count()
+    total_sellers = Seller.objects.count()
+    total_products = Product.objects.count()
+    pending_orders = Orders.objects.filter(order_status="Pending").count()
+    context = {
+        "total_users": total_users,
+        "total_sellers": total_sellers,
+        "total_products": total_products,
+        "pending_orders": pending_orders,
+    }
+
+    return render(request,"core/admin_dashboard.html",context)
 
 def manage_sellers(request):
     search_query = request.GET.get('q','')
     selected_status = request.GET.get('status','all')
     sellers = Seller.objects.all()
-
+    s_address = Address.objects.all()
     if search_query :
         sellers = sellers.filter(
             Q(shop_name__icontains = search_query) |
@@ -71,7 +82,7 @@ def manage_sellers(request):
             elif selected_status == 'rejected':
                 sellers = sellers.filter(verified=False)
 
-    paginator = Paginator(sellers,10)
+    paginator = Paginator(sellers,3)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -79,6 +90,7 @@ def manage_sellers(request):
             'page_obj': page_obj,
             'search_query': search_query,
             'selected_status': selected_status,
+            's_address': s_address,
     }
     return render(request,'core/manage_sellers.html',context)
 
@@ -87,27 +99,58 @@ def approve_seller(request, id):
     seller = get_object_or_404(Seller, seller=user)  
     seller.verified = True
     seller.save()
-
-    messages.success(request, "Seller approved successfully!")
     return redirect('manage_sellers')
-
 
 def reject_seller(request, id):
     user = get_object_or_404(User, id=id)
     seller = get_object_or_404(Seller, seller=user)  
     seller.verified = False
     seller.save()
-
-    messages.error(request, f"{seller.seller.username} rejected")
     return redirect('manage_sellers')
 
 def manage_users(request):
-    users = User.objects.all()
-    return render(request,'core/manage_users.html',{'users':users})
+    search_query = request.GET.get("search", "")
+    if search_query:
+        users_list = User.objects.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    else:
+        users_list = User.objects.all()
 
-def block_user(request):
-            
-    return redirect('core/manage_user.html')
+    paginator = Paginator(users_list, 5)  # 5 users per page
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+
+    context = {
+        'users': users_page,
+        'search': search_query,
+    }
+    return render(request,'core/manage_users.html',context)
+
+def toggle_user_status(user_id):
+    user = get_object_or_404(User,id=user_id)
+    user.status = not user.status
+    user.save()
+
+    return redirect("manage_users") 
+
+def buyer_order_details(request,id):
+    buyer = get_object_or_404(User,id=id,is_buyer=True)
+    orders = Orders.objects.filter(user=buyer).order_by('-order_date')
+    addresses = Address.objects.filter(user=buyer).order_by('-id')  
+    orders = orders.prefetch_related('orderitem_set__Product')
+
+    context = {
+       'buyer' : buyer,
+       'addresses': addresses,
+       'orders' : orders,
+    }
+    return render(request,'core/buyer_order_details.html',context)
+
+def order_in_details(request,id):
+    order_items = get_object_or_404(OrderItem,id=id)
+    return render(request,'core/order_in_details.html',order_items)
 
 def manage_products(request):
     products = Product.objects.all()

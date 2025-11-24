@@ -216,9 +216,6 @@
       <div class="page-header">
         <h2>Manage Products</h2>
         <div>
-          <button class="btn btn-primary me-2">
-            <i class="bi bi-plus-circle"></i> Add Product
-          </button>
           <button class="btn btn-outline-secondary">
             <i class="bi bi-filter"></i> Filters
           </button>
@@ -257,92 +254,68 @@
                   <th>Image</th>
                   <th>Name</th>
                   <th>Seller</th>
-                  <th>Category</th>
+                  <th>Sub Category</th>
                   <th>Price</th>
                   <th>Stock</th>
                   <th>Status</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>
-                    <img src="https://via.placeholder.com/50/1E40AF/FFFFFF?text=LP" 
-                         alt="Laptop Pro" class="product-img">
-                  </td>
-                  <td>
-                    <div>
-                      <strong>Laptop Pro 16"</strong><br>
-                      <small class="text-muted">SKU: LAP-001</small>
-                    </div>
-                  </td>
-                  <td>TechTrendz</td>
-                  <td>Electronics</td>
-                  <td><strong>₹75,000</strong></td>
-                  <td>
-                    <span class="text-warning fw-semibold">5 left</span>
-                  </td>
-                  <td><span class="badge bg-success">Active</span></td>
-                  <td>
-                    <button class="btn btn-sm btn-warning me-1" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" title="Remove">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="https://via.placeholder.com/50/3B82F6/FFFFFF?text=PH" 
-                         alt="Phone X" class="product-img">
-                  </td>
-                  <td>
-                    <div>
-                      <strong>Phone X Max</strong><br>
-                      <small class="text-muted">SKU: PHN-101</small>
-                    </div>
-                  </td>
-                  <td>TechTrendz</td>
-                  <td>Mobile Phones</td>
-                  <td><strong>₹1,29,999</strong></td>
-                  <td><span class="text-success fw-semibold">In Stock</span></td>
-                  <td><span class="badge bg-success">Active</span></td>
-                  <td>
-                    <button class="btn btn-sm btn-warning me-1" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" title="Remove">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <img src="https://via.placeholder.com/50/DC2626/FFFFFF?text=SH" 
-                         alt="Shirt" class="product-img">
-                  </td>
-                  <td>
-                    <div>
-                      <strong>Cotton Shirt</strong><br>
-                      <small class="text-muted">SKU: FASH-205</small>
-                    </div>
-                  </td>
-                  <td>Fashion Store</td>
-                  <td>Fashion</td>
-                  <td><strong>₹1,299</strong></td>
-                  <td><span class="text-danger fw-semibold">Out of Stock</span></td>
-                  <td><span class="badge bg-danger">Disabled</span></td>
-                  <td>
-                    <button class="btn btn-sm btn-success me-1" title="Restock">
-                      <i class="bi bi-arrow-repeat"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" title="Remove">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
+  {% for product in products %}
+  <tr>
+    <td>
+      <!-- If you add an image field later, replace placeholder -->
+      <img src="https://via.placeholder.com/50/1E40AF/FFFFFF?text=P" 
+           alt="{{ product.product_name }}" 
+           class="product-img">
+    </td>
+
+    <td>
+      <div>
+        <strong>{{ product.product_name }}</strong><br>
+        <small class="text-muted">ID: {{ product.product_id }}</small>
+      </div>
+    </td>
+
+    <td>{{ product.seller.username }}</td>
+
+    <td>
+      {% if product.sub_category %}
+        {{ product.sub_category }}
+      {% else %}
+        <span class="text-muted">No Subcategory</span>
+      {% endif %}
+    </td>
+
+    <td><strong>₹{{ product.product_price }}</strong></td>
+
+    <td>
+      {% if product.stock <= 5 %}
+        <span class="text-warning fw-semibold">{{ product.stock }} left</span>
+      {% else %}
+        <span class="text-success fw-semibold">{{ product.stock }}</span>
+      {% endif %}
+    </td>
+
+    <td>
+      {% if product.stock < 10 %}
+        <span class="badge bg-danger">Out of Stock</span>
+      {% else %}
+        <span class="badge bg-success">Active</span>
+      {% endif %}
+    </td>
+  </tr>
+
+  {% empty %}
+  <tr>
+    <td colspan="7" class="text-center text-muted py-4">
+      No products found.
+    </td>
+  </tr>
+
+  {% endfor %}
+</tbody>
+
             </table>
           </div>
         </div>
