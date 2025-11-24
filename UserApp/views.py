@@ -274,7 +274,6 @@ def checkout(request):
                 order=order,
                 product=buy_now_product,
                 quantity=buy_now_quantity,
-                price=buy_now_product.product_price
             )
             buy_now_product.stock -= buy_now_quantity
             buy_now_product.save()
@@ -285,7 +284,6 @@ def checkout(request):
                     order=order,
                     product=item.product,
                     quantity=item.quantity,
-                    price=item.product.product_price
                 )
                 item.product.stock -= item.quantity
                 item.product.save()
