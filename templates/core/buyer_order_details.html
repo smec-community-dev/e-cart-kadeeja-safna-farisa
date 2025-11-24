@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buyer Orders - {{ buyer.username }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary-color: #1E40AF;
+      --secondary-color: #3B82F6;
+      --background-color: #f8f9fa;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --success-color: #16A34A;
+      --error-color: #DC2626;
+      --highlight-color: #6366F1;
+    }
+
+    body {
+      background-color: var(--background-color);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--primary-color);
+      padding-top: 1.5rem;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+      z-index: 1040;
+      transition: transform 0.3s ease;
+      transform: translateX(-100%);
+    }
+    .sidebar.show { transform: translateX(0); }
+
+    .sidebar h4 {
+      color: white;
+      font-weight: 600;
+      padding: 0 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .sidebar a {
+      color: rgba(255,255,255,0.9);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 0.5rem;
+      margin: 0.3rem 1rem;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background: var(--highlight-color);
+      color: white;
+      transform: translateX(6px);
+    }
+    .sidebar a i { font-size: 1.2rem; width: 28px; text-align: center; }
+
+    /* Overlay */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1030;
+    }
+    .sidebar-overlay.show { display: block; }
+
+    /* Top Navbar (mobile & tablet) */
+    .top-navbar {
+      display: none;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 0.75rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1020;
+    }
+    .top-navbar .navbar-brand {
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 0;
+      transition: margin-left 0.3s ease;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .page-header h2 {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .card {
+      border: none;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .table thead {
+      background: var(--primary-color);
+      color: white;
+    }
+    .table thead th {
+      font-weight: 600;
+      border: none;
+      padding: 1rem;
+      font-size: 0.95rem;
+    }
+    .table tbody td {
+      vertical-align: middle;
+      padding: 0.9rem;
+      font-size: 0.95rem;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(99, 102, 241, 0.08);
+    }
+
+    /* Status Badges */
+    .status-pending    { background:#F59E0B; }
+    .status-confirmed  { background:#3B82F6; }
+    .status-shipped    { background:#8B5CF6; }
+    .status-delivered  { background:var(--success-color); }
+    .status-cancelled,
+    .status-returned,
+    .status-refunded   { background:var(--error-color); }
+
+    .badge {
+      font-size: 0.8rem;
+      padding: 0.45em 0.9em;
+    }
+
+    /* Responsive */
+    @media (min-width: 992px) {
+      .sidebar { transform: translateX(0); }
+      .main-content { margin-left: 260px; }
+      .top-navbar, .sidebar-overlay { display: none !important; }
+    }
+    @media (max-width: 991.98px) {
+      .top-navbar { display: flex; justify-content: space-between; align-items: center; }
+      .main-content { padding-top: 70px; }
+    }
+    @media (max-width: 576px) {
+      .page-header h2 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h4><i class="bi bi-shield-lock"></i> Admin Panel</h4>
+    <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="{% url 'manage_users' %}" class="active"><i class="bi bi-people"></i> Users</a>
+    <a href="{% url 'manage_sellers' %}"><i class="bi bi-shop"></i> Sellers</a>
+    <a href="{% url 'manage_categories' %}"><i class="bi bi-grid"></i> Categories</a>
+    <a href="{% url 'manage_products' %}"><i class="bi bi-box"></i> Products</a>
+    <a href="{% url 'manage_orders' %}"><i class="bi bi-cart"></i> Orders</a>
+    <a href="{% url 'manage_payments' %}"><i class="bi bi-credit-card"></i> Payments</a>
+    <a href=""><i class="bi bi-box-arrow-right"></i> Logout</a>
+  </div>
+
+  <!-- Mobile Top Navbar -->
+  <div class="top-navbar">
+    <button class="btn btn-primary" onclick="toggleSidebar()">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <div class="navbar-brand">Buyer Orders</div>
+    <div></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container-fluid">
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4 page-header">
+        <div>
+          <h2><i class="bi bi-person-circle me-2"></i> Orders of {{ buyer.username }}</h2>
+          <p class="text-muted mb-0">
+            Email: <strong>{{ buyer.email }}</strong> |
+            Contact: <strong>{{ buyer.contact|default:"N/A" }}</strong> |
+            Total Orders: <strong>{{ orders.count }}</strong>
+          </p>
+        </div>
+        <a href="{% url 'manage_users' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Buyers
+        </a>
+      </div>
+
+      <!-- Saved Addresses Section -->
+      <div class="mb-5">
+        <h4 class="mb-4"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Saved Addresses</h4>
+
+        {% if addresses %}
+          <div class="row g-4">
+            {% for addr in addresses %}
+              <div class="col-lg-6 col-xxl-4">
+                <div class="card h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold"><i class="bi bi-house-door me-2"></i>Address {{ forloop.counter }}</h6>
+                    <p class="text-muted mb-2">{{ addr.address|linebreaksbr }}</p>
+                    <small class="text-muted">Added on: {{ addr.created_at|date:"d M Y" }}</small>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-light border">
+            <i class="bi bi-info-circle me-2"></i> No saved addresses found for this buyer.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Orders Table -->
+      {% if orders %}
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Order Date</th>
+                    <th>Product Item(s)</th>
+                    <th>Quantity</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for order in orders %}
+                    <tr>
+                      <td><strong>{{ order.order_id }}</strong></td>
+                      <td>{{ order.order_date|date:"d M Y, h:i A" }}</td>
+                      <td>
+                        {% for item in order.orderitem_set.all %}
+                          {{ item.Product.product_name }}{% if not forloop.last %}<br>{% endif %}
+                        {% empty %}
+                          <span class="text-muted">—</span>
+                        {% endfor %}
+                      </td>
+                      <td>
+                        {% for item in order.orderitem_set.all %}
+                          {{ item.quantity }}{% if not forloop.last %}<br>{% endif %}
+                        {% empty %}
+                          <span class="text-muted">—</span>
+                        {% endfor %}
+                      </td>
+                      <td>₹{{ order.amount }}</td>
+                      <td>
+                        <span class="badge status-{{ order.order_status|lower }} rounded-pill">
+                          {{ order.order_status|capfirst }}
+                        </span>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if orders.has_other_pages %}
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+              {% if orders.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ orders.previous_page_number }}">Previous</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+              {% endif %}
+
+              {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                  <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                  <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+              {% endfor %}
+
+              {% if orders.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ orders.next_page_number }}">Next</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+
+      {% else %}
+        <div class="card text-center py-5">
+          <div class="card-body">
+            <i class="bi bi-cart-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">No orders found</h4>
+            <p class="text-muted">This buyer has not placed any orders yet.</p>
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('show');
+      document.querySelector('.sidebar-overlay').classList.toggle('show');
+    }
+
+    // Close sidebar when clicking a link on mobile
+    document.querySelectorAll('.sidebar a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 992) toggleSidebar();
+      });
+    });
+  </script>
+</body>
+</html>
