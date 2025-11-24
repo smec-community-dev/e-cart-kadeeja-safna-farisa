@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Register | E-Shop</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --text: #1e293b;
+      --text-light: #64748b;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border: rgba(255, 255, 255, 0.3);
+      --shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
+    }
+    body {
+      font-family:'Manrope',sans-serif;
+      background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:2rem 1rem;
+      color:var(--text);
+    }
+    .login-wrapper { max-width:560px; width:100%; }
+    .login-card {
+      background:var(--card-bg);
+      backdrop-filter:blur(16px);
+      border-radius:24px;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      padding:3rem 2.5rem;
+      animation:fadeInUp .6s ease-out;
+      position:relative;
+    }
+    .brand-logo { text-align:center; margin-bottom:2rem; }
+    .brand-logo h1 {
+      font-weight:800; font-size:2rem;
+      background:linear-gradient(135deg,#4f46e5,#7c3aed);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    .brand-logo p { color:var(--text-light); font-size:.95rem; }
+
+    .form-group { margin-bottom:1.5rem; position:relative; }
+    .form-control-custom {
+      width:100%; padding:1rem 1rem .75rem;
+      border:none; border-bottom:2px solid #e2e8f0;
+      background:transparent;
+    }
+    .form-control-custom:focus { border-bottom-color:var(--primary); }
+    .form-label-custom {
+      position:absolute; left:1rem; top:1.1rem;
+      color:var(--text-light);
+      transition:.3s;
+    }
+    .form-control-custom:focus + .form-label-custom,
+    .form-control-custom:not(:placeholder-shown) + .form-label-custom {
+      top:.4rem; font-size:.8rem; color:var(--primary);
+    }
+    .input-icon {
+      position:absolute; right:1rem; top:1.1rem;
+      color:var(--text-light);
+    }
+    .btn-login {
+      width:100%; padding:1rem;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff; border:none;
+      border-radius:14px; font-size:1.1rem;
+      margin-top:1rem;
+    }
+    .register-link {
+      text-align:center; margin-top:1.2rem; color:var(--text-light);
+    }
+  </style>
+
+</head>
+<body>
+{% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+<!--{% for x in data %}-->
+<!--<p>{{x.username}}</p>-->
+<!--<p>{{x.email}}</p>-->
+<!--<p>{{x.contact}}</p>-->
+<!--<p>{{x.address}}</p>-->
+<!--{% endfor %}-->
+
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <div class="brand-logo">
+      <h1>E-Shop Seller</h1>
+      <p>Create your seller account</p>
+    </div>
+
+    <form method="POST" action="">
+    {% csrf_token %}
+
+      <!-- Name -->
+      <div class="form-group">
+        <input type="text" name="name" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Full Name</label>
+        <i class="fa fa-user input-icon"></i>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <input type="email" name="email" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Email</label>
+        <i class="fa fa-envelope input-icon"></i>
+      </div>
+
+      <!-- Contact -->
+      <div class="form-group">
+        <input type="text" name="contact" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Contact Number</label>
+        <i class="fa fa-phone input-icon"></i>
+      </div>
+
+      <!-- Address -->
+<!--      <div class="form-group">-->
+<!--        <input type="text" name="address" class="form-control-custom" placeholder=" " required>-->
+<!--        <label class="form-label-custom">Address</label>-->
+<!--        <i class="fa fa-map-marker-alt input-icon"></i>-->
+<!--      </div>-->
+
+      <!-- Shop Name -->
+      <div class="form-group">
+        <input type="text" name="shop_name" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Shop Name</label>
+        <i class="fa fa-store input-icon"></i>
+      </div>
+
+      <!-- Shop Description -->
+      <div class="form-group">
+        <textarea name="description" class="form-control-custom" placeholder=" " rows="1" required></textarea>
+        <label class="form-label-custom">Shop Description</label>
+        <i class="fa fa-info-circle input-icon"></i>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <input type="password" name="password" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Password</label>
+        <i class="fa fa-lock input-icon"></i>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <input type="password" name="re_password" class="form-control-custom" placeholder=" " required>
+        <label class="form-label-custom">Confirm Password</label>
+        <i class="fa fa-lock input-icon"></i>
+      </div>
+
+      <!-- Hidden Role -->
+      <input type="hidden" name="role" value="seller">
+
+      <button type="submit" class="btn-login">Create Seller Account</button>
+
+      <div class="register-link">
+        Already have an account? <a href="{% url 'seller_login' %}">Login here</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
