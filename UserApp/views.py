@@ -43,23 +43,28 @@ def index(request):
 
 
 def user_reg(request):
-    if request.method=="POST":
-        user_name =request.POST['username']
-        email=request.POST['email']
-        contact=request.POST['contact']
-        password=request.POST['password']
-        re_password=request.POST['re_password']
+    if request.method == "POST":
+        user_name = request.POST['username']
+        email = request.POST['email']
+        contact = request.POST['contact']
+        password = request.POST['password']
+        re_password = request.POST['re_password']
+
         if not all([user_name, email, contact, password, re_password]):
             messages.error(request, "All fields are required.")
-            return redirect('register')
+            return redirect('userapp:register')  # Use namespaced URL
+
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already registered. Try logging in.")
-            return redirect('register')
+            return redirect('userapp:register')  # Use namespaced URL
+
         if password != re_password:
             messages.error(request, "Passwords do not match.")
-            return redirect('register')
-        User.objects.create_user(
-           username=user_name,
+            return redirect('userapp:register')  # Use namespaced URL
+
+        # Create user - the signal will automatically handle post-registration actions
+        user = User.objects.create_user(
+            username=user_name,
             email=email,
             password=password,
             contact=contact,
@@ -68,34 +73,53 @@ def user_reg(request):
             is_seller=False,
             is_admin=False
         )
-        messages.success(request,"registration successful")
-        return redirect('login')
-    return render(request,'user/register.html')
+
+        messages.success(request, "Registration successful! Please login.")
+        return redirect('userapp:login')  # Use namespaced URL
+
+    return render(request, 'user/register.html')
 
 
+def redirect_by_user_type(request):
+    """
+    Redirect users safely - handle buyer explicitly
+    """
+    if not request.user.is_authenticated:
+        return redirect('userapp:login')
+
+    # Handle buyers (your main users)
+    if request.user.is_buyer:
+        return redirect('userapp:index')
+
+    # # For seller/admin, redirect to index for now (until their apps are ready)
+    # elif request.user.is_seller or request.user.is_admin:
+    #     messages.info(request, "Seller/Admin dashboard coming soon. Redirected to user dashboard.")
+    #     return redirect('userapp:index')
+
+    else:
+        return redirect('userapp:index')
 def user_login(request):
     if request.method == 'POST':
-        username=request.POST['username']
-        password=request.POST['password']
+        username = request.POST['username']
+        password = request.POST['password']
         user = authenticate(username=username, password=password)
 
         if user is None:
             messages.error(request, "Invalid username or password.")
-            return redirect('login')
-
-        if not user.is_buyer:
-            messages.error(request, "Not a valid user.")
-            return redirect('login')
+            return redirect('userapp:login')  # Use namespaced URL
 
         if not user.status:
             messages.error(request, "This account is restricted.")
-            return redirect('login')
+            return redirect('userapp:login')  # Use namespaced URL
 
+        # Login the user - this will trigger the user_logged_in signal
         login(request, user)
-        return redirect("index")
-    users=User.objects.all()
-    return render(request, 'user/login.html',{'data':users})
 
+        # Use the redirect function to send users to appropriate pages
+        return redirect_by_user_type(request)
+
+    users = User.objects.all()
+    return render(request, 'user/login.html', {'data': users})
 @role_required('buyer',login_url='/user/login/')
 def home(request):
     search_query = request.GET.get('q', '')
@@ -151,7 +175,7 @@ def product_detail(request, slug):
                         image=image
                     )
                     messages.success(request, "Thank you! Your review has been added.")
-                    return redirect('product_detail', slug=slug)
+                    return redirect('userapp:product_detail', slug=slug)
 
         in_wishlist = False
         if request.user.is_authenticated:
@@ -164,17 +188,17 @@ def product_detail(request, slug):
         'can_review': can_review,})
     except Product.DoesNotExist:
         messages.error(request,"product not available")
-        return redirect('home')
+        return redirect('userapp:home')
 
 @role_required('buyer',login_url='/user/login/')
 def add_to_cart(request,slug):
     if request.method!="POST":
-        return redirect('product_detail',slug=slug)
+        return redirect('userapp:product_detail',slug=slug)
 
     product=get_object_or_404(Product,slug=slug)
     if product.stock < 1:
         messages.error(request, "This product is out of stock.")
-        return redirect('product_detail', slug=slug)
+        return redirect('userapp:product_detail', slug=slug)
     try:
         quantity = int(request.POST.get('quantity'))
     except:
@@ -182,13 +206,13 @@ def add_to_cart(request,slug):
 
     if quantity > product.stock:
         messages.warning(request, f"Only {product.stock} items available in stock.")
-        return redirect('product_detail', slug=slug)
+        return redirect('userapp:product_detail', slug=slug)
 
     cart_item,created = Cart.objects.get_or_create(product=product,user=request.user,  defaults={"quantity":quantity  })
     if not created:
         cart_item.quantity += 1
         cart_item.save()
-    return redirect('cart')
+    return redirect('userapp:cart')
 
 @role_required('buyer',login_url='/user/login/')
 def update_cart(request,cart_id):
@@ -201,7 +225,7 @@ def update_cart(request,cart_id):
             cart_item.quantity = new_qty
             cart_item.save()
             messages.success(request, "Quantity updated successfully")
-    return redirect("cart")
+    return redirect("userapp:cart")
 
 @role_required('buyer',login_url='/user/login/')
 def view_cart(request):
@@ -213,13 +237,13 @@ def view_cart(request):
 def remove_cart(request, cart_id):
     item = get_object_or_404(Cart, cart_id=cart_id, user=request.user)
     item.delete()
-    return redirect("cart")
+    return redirect("userapp:cart")
 
 @role_required('buyer',login_url='/user/login/')
 def checkout(request):
 
     if request.GET.get('clear'):
-        return redirect('checkout')
+        return redirect('userapp:checkout')
 
     buynow = request.GET.get('buy_now')
     product_id = request.GET.get('product_id')
@@ -235,7 +259,7 @@ def checkout(request):
         product = get_object_or_404(Product, product_id=product_id)
         if product.stock < quantity:
             messages.error(request, f"Only {product.stock} items in stock!")
-            return redirect('product_detail', product.slug)
+            return redirect('userapp:product_detail', product.slug)
 
         buy_now_product = product
         buy_now_quantity = quantity
@@ -246,7 +270,7 @@ def checkout(request):
         cart_items = Cart.objects.filter(user=request.user)
         if not cart_items.exists():
             messages.info(request, "Your cart is empty!")
-            return redirect('cart')
+            return redirect('userapp:cart')
         total = sum(item.product.product_price * item.quantity for item in cart_items)
 
     addresses = Address.objects.filter(user=request.user)
@@ -256,7 +280,7 @@ def checkout(request):
         address_id = request.POST.get('address_id')
         if not address_id:
             messages.error(request, "Please select a delivery address.")
-            return redirect('checkout')
+            return redirect('userapp:checkout')
 
         address = get_object_or_404(Address, id=address_id, user=request.user)
 
@@ -290,7 +314,7 @@ def checkout(request):
             cart_items.delete()  # Clear cart
 
         messages.success(request, f"Order placed successfully! Order ID: {order.order_id}")
-        return redirect('orders')
+        return redirect('userapp:orders')
 
     context = {
         'cart_items': cart_items,
@@ -324,7 +348,7 @@ def wishlist(request,slug):
         messages.success(request,f"{product.product_name} removed from wishlist")
     else:
         messages.success(request,f"{product.product_name} added to wishlist")
-    return redirect('product_detail',slug=slug)
+    return redirect('userapp:product_detail',slug=slug)
 
 @role_required('buyer',login_url='/user/login/')
 def view_wishlist(request):
@@ -365,7 +389,7 @@ def add_address(request):
         if address_text:
             Address.objects.create(user=request.user, address=address_text)
             messages.success(request, "New address added!")
-        return redirect('address')
+        return redirect('userapp:address')
     return redirect('address')
 
 @role_required('buyer',login_url='/user/login/')
@@ -378,7 +402,7 @@ def edit_address(request, address_id):
             addr.address = address_text
             addr.save()
             messages.success(request, "Address updated!")
-        return redirect('address')
+        return redirect('userapp:address')
     return render(request, "user/address.html", {"edit_address": addr,"address": address})
 
 
@@ -387,7 +411,7 @@ def delete_address(request, address_id):
     addr = get_object_or_404(Address, id=address_id, user=request.user)
     addr.delete()
     messages.success(request, "Address deleted successfully!")
-    return redirect("address")
+    return redirect("userapp:address")
 
 @role_required('buyer',login_url='/user/login/')
 def password_change(request):
@@ -408,7 +432,7 @@ def password_change(request):
             request.user.save()
             update_session_auth_hash(request, request.user)  # Keeps user logged in
             messages.success(request, "Password changed successfully!")
-            return redirect('dashboard')
+            return redirect('userapp:dashboard')
     return render(request,"user/manage_passwords.html")
 
 @role_required('buyer',login_url='/user/login/')
@@ -427,7 +451,7 @@ def edit_profile(request):
 
 def user_logout(request):
     logout(request)
-    return redirect('index')
+    return redirect('userapp:index')
 
 
 
@@ -443,7 +467,7 @@ def contact(request):
             message=request.POST['message']
         )
         messages.success(request, "Thank you! Your message has been sent. We'll reply soon.")
-        return redirect('contact')
+        return redirect('userapp:contact')
     return render(request, 'user/contact.html')
 
 def shop(request, category_id=None, subcategory_id=None):

@@ -107,10 +107,10 @@
             </button>
         </form>
     </div>
-    {% elif user.is_authenticated and not can_review and reviews.exists %}
-        <div class="alert alert-info">
-            <i class="fas fa-check-circle"></i> Thank you for your purchase! You can review this product once it's delivered.
-        </div>
+<!--    {% elif user.is_authenticated and not can_review and reviews.exists %}-->
+<!--        <div class="alert alert-info">-->
+<!--            <i class="fas fa-check-circle"></i> Thank you for your purchase! You can review this product once it's delivered.-->
+<!--        </div>-->
     {% endif %}
 
     <!-- Display Reviews -->
@@ -176,11 +176,11 @@
 
                             <div class="mt-4 d-flex flex-wrap gap-3">
                                 <!-- Add to Cart -->
-                                <form method="POST" action="{% url 'add_to_cart' product.slug %}" class="d-inline">
+                                <form method="POST" action="{% url 'userapp:add_to_cart' product.slug %}" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="quantity" value="1" id="cartQty">
                                     {% if cart_item %}
-                                        <a href="{% url 'cart' %}" class="btn btn-warning btn-lg px-5 rounded-pill shadow">
+                                        <a href="{% url 'userapp:cart' %}" class="btn btn-warning btn-lg px-5 rounded-pill shadow">
                                             <i class="fas fa-shopping-cart me-2"></i>Go to Cart
                                         </a>
                                     {% else %}
@@ -191,7 +191,7 @@
                                 </form>
 
                                 <!-- Buy Now -->
-                                <form method="POST" action="{% url 'checkout' %}" class="d-inline">
+                                <form method="POST" action="{% url 'userapp:checkout' %}" class="d-inline">
                                     {% csrf_token %}
                                     <input type="hidden" name="product_slug" value="{{ product.slug }}">
                                     <input type="hidden" name="quantity" value="1" id="buyNowQty">
@@ -206,7 +206,7 @@
 
                         <!-- Wishlist Heart -->
                         <div class="mt-4">
-                            <a href="{% url 'wishlist' product.slug %}"
+                            <a href="{% url 'userapp:wishlist' product.slug %}"
                                class="btn btn-outline-danger btn-lg rounded-pill px-4 shadow-sm {% if in_wishlist %}active{% endif %}">
                                 <i class="{% if in_wishlist %}fas{% else %}far{% endif %} fa-heart me-2"></i>
                                 {% if in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
@@ -215,7 +215,7 @@
 
                     {% else %}
                         <div class="text-center">
-                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg px-5 rounded-pill">
+                            <a href="{% url 'userapp:login' %}?next={{ request.path }}" class="btn btn-primary btn-lg px-5 rounded-pill">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login to Buy
                             </a>
                         </div>

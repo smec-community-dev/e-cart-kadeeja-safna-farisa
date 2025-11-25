@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from .import views
 
+app_name = 'UserApp'
+
 urlpatterns = [
     path("", views.index, name="index"),
     path('shop/', views.shop, name='shop'),
@@ -12,6 +14,7 @@ urlpatterns = [
     path('all-products/', views.index, name='all_products'),
     path("user/register/",views.user_reg,name='register'),
     path("user/login/",views.user_login,name='login'),
+    path('redirect/', views.redirect_by_user_type, name='redirect_by_type'),
     path('user/home/',views.home,name='home'),
     path("product/<slug:slug>/", views.product_detail, name="product_detail"),
     path("cart/add/<slug:slug>/", views.add_to_cart, name="add_to_cart"),

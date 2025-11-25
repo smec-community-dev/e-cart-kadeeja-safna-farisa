@@ -125,26 +125,26 @@
       </div>
 
       <nav class="nav flex-column">
-        <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <a href="{% url 'userapp:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
           Dashboard
         </a>
-        <a href="{% url 'edit_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+        <a href="{% url 'userapp:edit_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
           Edit Profile
         </a>
-        <a href="{% url 'address' %}" class="nav-link {% if request.resolver_match.url_name == 'address' %}active{% endif %}">
+        <a href="{% url 'userapp:address' %}" class="nav-link {% if request.resolver_match.url_name == 'address' %}active{% endif %}">
           My Addresses
         </a>
-        <a href="{% url 'orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+        <a href="{% url 'userapp:orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
           My Orders
         </a>
-        <a href="{% url 'view_wishlist' %}" class="nav-link {% if request.resolver_match.url_name == 'view_wishlist' %}active{% endif %}">
+        <a href="{% url 'userapp:view_wishlist' %}" class="nav-link {% if request.resolver_match.url_name == 'view_wishlist' %}active{% endif %}">
          Wishlist <span class="badge bg-danger ms-2">{{ wishlist_count|default:0 }}</span>
         </a>
-        <a href="{% url 'password_change' %}" class="nav-link {% if request.resolver_match.url_name == 'password_change' %}active{% endif %}">
+        <a href="{% url 'userapp:password_change' %}" class="nav-link {% if request.resolver_match.url_name == 'password_change' %}active{% endif %}">
           Change Password
         </a>
         <hr class="my-4">
-        <a href="{% url 'logout' %}" class="nav-link text-danger">
+        <a href="{% url 'userapp:logout' %}" class="nav-link text-danger">
           Logout
         </a>
       </nav>

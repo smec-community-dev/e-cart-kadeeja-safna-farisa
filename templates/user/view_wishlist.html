@@ -16,8 +16,8 @@
           <h6 class="card-title">{{ item.product.product_name|truncatechars:50 }}</h6>
           <p class="text-primary fw-bold fs-5">₹{{ item.product.product_price }}</p>
           <div class="mt-auto">
-            <a href="{% url 'add_to_cart' item.product.slug %}" class="btn btn-primary w-100 mb-2">Add to Cart</a>
-            <form action="{% url 'wishlist' item.product.slug %}" method="post" class="d-inline w-100">
+            <a href="{% url 'userapp:add_to_cart' item.product.slug %}" class="btn btn-primary w-100 mb-2">Add to Cart</a>
+            <form action="{% url 'userapp:wishlist' item.product.slug %}" method="post" class="d-inline w-100">
               {% csrf_token %}
               <button type="submit" class="btn btn-outline-danger w-100">Remove</button>
             </form>
@@ -31,7 +31,7 @@
   <div class="text-center py-5">
     <i class="fas fa-heart fs-1 text-muted"></i>
     <h4 class="mt-3 text-muted">Your wishlist is empty</h4>
-    <a href="{% url 'index' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+    <a href="{% url 'userapp:index' %}" class="btn btn-primary mt-3">Continue Shopping</a>
   </div>
 {% endif %}
 {% endblock %}

@@ -60,7 +60,7 @@
                 </form>
 
                 <div class="mt-4">
-                    <a href="{% url 'add_address' %}" class="btn btn-outline-primary">
+                    <a href="{% url 'userapp:add_address' %}" class="btn btn-outline-primary">
                         Add New Address
                     </a>
                 </div>
@@ -134,7 +134,7 @@
                     <h4 class="text-primary fw-bold m-0">₹{{ total }}</h4>
                 </div>
                 <div class="mt-3">
-                    <a href="{% url 'checkout' %}?clear=true" class="btn btn-outline-danger btn-sm w-100">
+                    <a href="{% url 'userapp:checkout' %}?clear=true" class="btn btn-outline-danger btn-sm w-100">
                         <i class="fas fa-times-circle me-2"></i>
                         Change / Cancel Items
                     </a>

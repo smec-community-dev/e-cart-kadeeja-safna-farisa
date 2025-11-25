@@ -158,6 +158,6 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-ACCOUNT_EMAIL_REQUIRED = True          # Force email from Google
-ACCOUNT_USERNAME_REQUIRED = False      # No username needed
-ACCOUNT_AUTHENTICATION_METHOD = 'email' # Login using email
+# New allauth settings
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']

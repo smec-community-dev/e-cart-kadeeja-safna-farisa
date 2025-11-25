@@ -83,7 +83,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg fixed-top">
     <div class="container">
-      <a class="navbar-brand" href="{% url 'index' %}">QuickKart</a>
+      <a class="navbar-brand" href="{% url 'userapp:index' %}">QuickKart</a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
@@ -91,19 +91,19 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <!-- Search Bar -->
-        <form class="d-flex mx-auto my-2 my-lg-0" style="max-width: 500px;" action="{% url 'shop' %}" method="get">
+        <form class="d-flex mx-auto my-2 my-lg-0" style="max-width: 500px;" action="{% url 'userapp:shop' %}" method="get">
           <input class="form-control me-2" type="search" name="q" placeholder="Search for products..." value="{{ request.GET.q }}">
           <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
         </form>
 
         <ul class="navbar-nav ms-auto align-items-center">
-          <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'shop' %}">Shop</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'userapp:index' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'userapp:shop' %}">Shop</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'userapp:about' %}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'userapp:contact' %}">Contact</a></li>
 
           <li class="nav-item">
-            <a href="{% url 'view_wishlist' %}" class="icon-btn text-dark">
+            <a href="{% url 'userapp:view_wishlist' %}" class="icon-btn text-dark">
               <i class="fas fa-heart fs-4"></i>
               {% if wishlist_count > 0 %}
                 <span class="badge-count bg-danger text-white">{{ wishlist_count }}</span>
@@ -112,7 +112,7 @@
           </li>
 
           <li class="nav-item">
-            <a href="{% url 'cart' %}" class="icon-btn text-dark">
+            <a href="{% url 'userapp:cart' %}" class="icon-btn text-dark">
               <i class="fas fa-shopping-cart fs-4"></i>
               {% if cart_items > 0 %}
                 <span class="badge-count bg-primary text-white">{{ cart_items }}</span>
@@ -127,16 +127,16 @@
                 <span class="d-none d-md-inline fw-semibold">{{ user.first_name|default:user.username }}</span>
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user me-2"></i> My Profile</a></li>
-                <li><a class="dropdown-item" href="{% url 'orders' %}"><i class="fas fa-box me-2"></i> My Orders</a></li>
-                <li><a class="dropdown-item" href="{% url 'view_wishlist' %}"><i class="fas fa-heart me-2"></i> My Wishlist</a></li>
+                <li><a class="dropdown-item" href="{% url 'userapp:profile' %}"><i class="fas fa-user me-2"></i> My Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'userapp:orders' %}"><i class="fas fa-box me-2"></i> My Orders</a></li>
+                <li><a class="dropdown-item" href="{% url 'userapp:view_wishlist' %}"><i class="fas fa-heart me-2"></i> My Wishlist</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'userapp:logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
               </ul>
             </li>
           {% else %}
             <li class="nav-item">
-              <a href="{% url 'login' %}" class="btn btn-primary px-4">Login</a>
+              <a href="{% url 'userapp:login' %}" class="btn btn-primary px-4">Login</a>
             </li>
           {% endif %}
         </ul>

@@ -100,3 +100,21 @@ class ContactMessage(models.Model):
 
     class Meta:
         db_table="contact messages"
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=[
+        ('order_update', 'Order Update'),
+        ('promotion', 'Promotion'),
+        ('system', 'System Notification'),
+        ('welcome', 'Welcome Message')
+    ])
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'user_notifications'
+        ordering = ['-created_at']
+

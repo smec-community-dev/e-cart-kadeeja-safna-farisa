@@ -17,7 +17,7 @@
   <h2 class="text-center mb-5 fw-bold">Shop by Category</h2>
   <div class="row g-4">
     <div class="col-md-3">
-      <a href=" {% url 'shop_by_subcategory' 1 %}" class="text-decoration-none">
+      <a href=" {% url 'userapp:shop_by_subcategory' 1 %}" class="text-decoration-none">
         <div class="category-card">
           <div class="category-icon"><i class="fas fa-laptop"></i></div>
           <h5 class="fw-bold text-dark">Electronics</h5>
@@ -74,7 +74,7 @@
             <span class="badge stock-out rounded-pill">Out of Stock</span>
           {% endif %}
 
-          <a href="{% url 'product_detail' product.slug %}" class="btn btn-primary w-100 mt-3">
+          <a href="{% url 'userapp:product_detail' product.slug %}" class="btn btn-primary w-100 mt-3">
             View Details
           </a>
         </div>
@@ -86,7 +86,7 @@
   </div>
 
   <div class="text-center mt-5">
-    <a href="{% url 'shop' %}" class="btn btn-primary btn-lg">View All Products →</a>
+    <a href="{% url 'userapp:shop' %}" class="btn btn-primary btn-lg">View All Products →</a>
   </div>
 </div>
 
