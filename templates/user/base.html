@@ -120,7 +120,7 @@
             </a>
           </li>
 
-         {% if user.is_authenticated %}
+         {% if user.is_authenticated  and user.is_buyer%}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
                 <i class="fas fa-user-circle fs-3 text-primary"></i>
