@@ -1,0 +1,609 @@
+{% extends 'user/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-bell"></i> Test WebSocket Notifications</h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- Connection Status -->
+                    <div class="alert alert-info" id="connectionStatus">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+                            <div>
+                                <strong>Connecting to WebSocket...</strong>
+                                <div class="small">User ID: {{ user.id|default:"Not logged in" }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Controls -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Test Notification</h5>
+                                    <form id="testNotificationForm">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label class="form-label">Message</label>
+                                            <input type="text" id="notificationMessage" class="form-control"
+                                                   value="🎯 Test notification from Redis WebSocket!" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Type</label>
+                                            <select id="notificationType" class="form-select">
+                                                <option value="system">System</option>
+                                                <option value="promotion">Promotion</option>
+                                                <option value="order_update">Order Update</option>
+                                                <option value="welcome">Welcome</option>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-paper-plane"></i> Send Test Notification
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Connection Tools</h5>
+                                    <div class="d-grid gap-2">
+                                        <button id="testConnectionBtn" class="btn btn-outline-primary">
+                                            <i class="fas fa-plug"></i> Test Connection
+                                        </button>
+                                        <button id="getUnreadBtn" class="btn btn-outline-success">
+                                            <i class="fas fa-bell"></i> Get Unread Count
+                                        </button>
+                                        <button id="markAllReadBtn" class="btn btn-outline-warning">
+                                            <i class="fas fa-check-double"></i> Mark All Read
+                                        </button>
+                                        <button id="clearAllBtn" class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Clear All
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Notifications -->
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-stream"></i> Live Notifications
+                                <span id="notificationBadge" class="badge bg-danger float-end" style="display: none;">0</span>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="notificationList" style="max-height: 300px; overflow-y: auto;">
+                                <div class="text-center py-5 text-muted" id="noNotifications">
+                                    <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                                    <p>No notifications yet. Send a test notification!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+<style>
+    .notification-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    .notification-item.unread {
+        background-color: #f0f8ff;
+        border-left: 3px solid #0d6efd;
+    }
+    .toast {
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+</style>
+
+<!-- WebSocket JavaScript (Modified for Test Page) -->
+<script>
+    class WebSocketNotifications {
+        constructor(userId) {
+            this.userId = userId;
+            this.socket = null;
+            this.reconnectDelay = 3000;
+            this.maxReconnectAttempts = 5;
+            this.reconnectAttempts = 0;
+            this.isConnected = false;
+            this.unreadCount = 0;
+
+            // Initialize
+            this.init();
+        }
+
+        init() {
+            this.connect();
+            this.loadNotifications();
+            this.setupEventListeners();
+            this.setupDesktopNotifications();
+            this.updateConnectionStatus('Connecting...', 'info');
+        }
+
+        connect() {
+            if (!this.userId || this.userId === 'None') {
+                this.updateConnectionStatus('Please login to test notifications', 'warning');
+                console.log('No user ID, WebSocket not connected');
+                return;
+            }
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/notifications/${this.userId}/`;
+
+            console.log('Connecting to:', wsUrl);
+            this.socket = new WebSocket(wsUrl);
+
+            this.socket.onopen = () => {
+                console.log('✅ WebSocket connected');
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+                this.updateConnectionStatus('Connected to WebSocket', 'success');
+                this.showToast('Connected to notifications', 'success');
+            };
+
+            this.socket.onmessage = (event) => {
+                console.log('📨 Message received:', event.data);
+                const data = JSON.parse(event.data);
+                this.handleMessage(data);
+            };
+
+            this.socket.onclose = (event) => {
+                console.log('🔴 WebSocket disconnected', event);
+                this.isConnected = false;
+                this.updateConnectionStatus('Disconnected. Reconnecting...', 'danger');
+                this.reconnect();
+            };
+
+            this.socket.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                this.isConnected = false;
+                this.updateConnectionStatus('Connection error', 'danger');
+            };
+        }
+
+        handleMessage(data) {
+            console.log('Processing message type:', data.type);
+
+            if (data.type === 'notification') {
+                const notification = data.notification;
+
+                // Add to notification list
+                this.addNotificationToList(notification);
+
+                // Update badge count
+                this.updateBadgeCount(1);
+
+                // Show toast
+                this.showNotificationToast(notification);
+
+                // Show desktop notification
+                this.showDesktopNotification(notification);
+
+            } else if (data.type === 'connected' || data.type === 'connection_established') {
+                this.updateConnectionStatus('WebSocket connected successfully', 'success');
+
+            } else if (data.type === 'ping') {
+                // Respond to ping
+                this.socket.send(JSON.stringify({type: 'pong', timestamp: Date.now()}));
+            }
+        }
+
+        addNotificationToList(notification) {
+            const notificationList = document.getElementById('notificationList');
+            const noNotifications = document.getElementById('noNotifications');
+
+            if (noNotifications) {
+                noNotifications.style.display = 'none';
+            }
+
+            const notificationElement = this.createNotificationElement(notification);
+            notificationList.insertBefore(notificationElement, notificationList.firstChild);
+        }
+
+        createNotificationElement(notification) {
+            const div = document.createElement('div');
+            div.className = `notification-item ${notification.is_read ? '' : 'unread'}`;
+            div.dataset.id = notification.id;
+
+            const typeClass = this.getNotificationTypeClass(notification.type);
+            const icon = this.getNotificationIcon(notification.type);
+            const time = new Date(notification.created_at).toLocaleTimeString();
+
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="me-2">
+                        <span class="badge ${typeClass} me-1">${notification.type.replace('_', ' ')}</span>
+                        <strong>${notification.message}</strong>
+                        <div class="small text-muted mt-1">
+                            <i class="far fa-clock"></i> ${time}
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-link text-muted mark-read-btn" data-id="${notification.id}" title="Mark as read">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            `;
+
+            // Add click event to mark as read
+            const markReadBtn = div.querySelector('.mark-read-btn');
+            markReadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.markAsRead(notification.id, div);
+            });
+
+            return div;
+        }
+
+        async loadNotifications() {
+            try {
+                const response = await fetch('/user/api/notifications/');
+                const data = await response.json();
+
+                console.log('Loaded notifications:', data);
+
+                if (data.notifications && data.notifications.length > 0) {
+                    const noNotifications = document.getElementById('noNotifications');
+                    if (noNotifications) {
+                        noNotifications.style.display = 'none';
+                    }
+                    this.renderNotifications(data.notifications);
+                    this.updateBadgeCount(data.unread_count, true);
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                this.showToast('Error loading notifications', 'danger');
+            }
+        }
+
+        renderNotifications(notifications) {
+            const notificationList = document.getElementById('notificationList');
+            notificationList.innerHTML = '';
+
+            notifications.forEach(notification => {
+                const element = this.createNotificationElement({
+                    ...notification,
+                    created_at: notification.created_at || new Date().toISOString()
+                });
+                notificationList.appendChild(element);
+            });
+        }
+
+        async markAsRead(notificationId, element = null) {
+            try {
+                const response = await fetch(`/user/api/notifications/${notificationId}/read/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken(),
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    if (element) {
+                        element.classList.remove('unread');
+                        const markReadBtn = element.querySelector('.mark-read-btn');
+                        if (markReadBtn) markReadBtn.remove();
+                    }
+                    this.updateBadgeCount(-1);
+                    this.showToast('Notification marked as read', 'success');
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        async markAllAsRead() {
+            try {
+                const response = await fetch('/user/api/notifications/mark-all-read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken(),
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    // Remove unread class from all notifications
+                    document.querySelectorAll('.notification-item.unread').forEach(item => {
+                        item.classList.remove('unread');
+                        const markReadBtn = item.querySelector('.mark-read-btn');
+                        if (markReadBtn) markReadBtn.remove();
+                    });
+
+                    // Hide badge
+                    this.updateBadgeCount(0, true);
+
+                    this.showToast('All notifications marked as read', 'success');
+                }
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                this.showToast('Error marking as read', 'danger');
+            }
+        }
+
+        async clearAllNotifications() {
+            if (!confirm('Are you sure you want to clear all notifications?')) return;
+
+            try {
+                const response = await fetch('/user/api/notifications/clear-all/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken(),
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    document.getElementById('notificationList').innerHTML = `
+                        <div class="text-center py-5 text-muted" id="noNotifications">
+                            <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                            <p>No notifications yet. Send a test notification!</p>
+                        </div>
+                    `;
+                    this.updateBadgeCount(0, true);
+                    this.showToast('All notifications cleared', 'success');
+                }
+            } catch (error) {
+                console.error('Error clearing notifications:', error);
+                this.showToast('Error clearing notifications', 'danger');
+            }
+        }
+
+        async sendTestNotification() {
+            const message = document.getElementById('notificationMessage').value;
+            const type = document.getElementById('notificationType').value;
+
+            try {
+                const response = await fetch('/user/notifications/test/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': this.getCSRFToken(),
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(message)}&type=${type}`
+                });
+
+                if (response.ok) {
+                    this.showToast('Test notification sent!', 'success');
+                } else {
+                    this.showToast('Failed to send notification', 'danger');
+                }
+            } catch (error) {
+                console.error('Error sending test notification:', error);
+                this.showToast('Error sending notification', 'danger');
+            }
+        }
+
+        updateBadgeCount(change, setAbsolute = false) {
+            const badge = document.getElementById('notificationBadge');
+
+            if (setAbsolute) {
+                this.unreadCount = change;
+            } else {
+                this.unreadCount += change;
+                if (this.unreadCount < 0) this.unreadCount = 0;
+            }
+
+            if (this.unreadCount > 0) {
+                badge.textContent = this.unreadCount;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        updateConnectionStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('connectionStatus');
+            const types = {
+                'info': 'alert-info',
+                'success': 'alert-success',
+                'warning': 'alert-warning',
+                'danger': 'alert-danger'
+            };
+
+            statusDiv.className = `alert ${types[type] || 'alert-info'}`;
+            statusDiv.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} fa-lg"></i>
+                    </div>
+                    <div>
+                        <strong>${message}</strong>
+                        <div class="small">User ID: ${this.userId} | Status: ${this.isConnected ? 'Connected' : 'Disconnected'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        showNotificationToast(notification) {
+            const typeClass = this.getNotificationTypeClass(notification.type);
+            const icon = this.getNotificationIcon(notification.type);
+
+            const toast = document.createElement('div');
+            toast.className = `toast show mb-2`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="toast-header ${typeClass} text-white">
+                    <i class="fas ${icon} me-2"></i>
+                    <strong class="me-auto">${notification.type.replace('_', ' ').toUpperCase()}</strong>
+                    <small>Just now</small>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    ${notification.message}
+                </div>
+            `;
+
+            document.getElementById('toastContainer').appendChild(toast);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast show mb-2`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="toast-header bg-${type} text-white">
+                    <i class="fas fa-bell me-2"></i>
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+
+            document.getElementById('toastContainer').appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        setupDesktopNotifications() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        showDesktopNotification(notification) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('QuickKart Notification', {
+                    body: notification.message,
+                    icon: '/static/favicon.ico'
+                });
+            }
+        }
+
+        getNotificationTypeClass(type) {
+            const classes = {
+                'order_update': 'bg-primary',
+                'promotion': 'bg-warning',
+                'system': 'bg-info',
+                'welcome': 'bg-success'
+            };
+            return classes[type] || 'bg-secondary';
+        }
+
+        getNotificationIcon(type) {
+            const icons = {
+                'order_update': 'fa-shopping-cart',
+                'promotion': 'fa-tag',
+                'system': 'fa-info-circle',
+                'welcome': 'fa-hand-wave'
+            };
+            return icons[type] || 'fa-bell';
+        }
+
+        reconnect() {
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                this.reconnectAttempts++;
+                console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+                this.updateConnectionStatus(`Reconnecting... (Attempt ${this.reconnectAttempts})`, 'warning');
+
+                setTimeout(() => {
+                    this.connect();
+                }, this.reconnectDelay * this.reconnectAttempts);
+            } else {
+                console.log('Max reconnection attempts reached');
+                this.updateConnectionStatus('Connection failed. Refresh page to retry.', 'danger');
+            }
+        }
+
+        setupEventListeners() {
+            // Test notification form
+            document.getElementById('testNotificationForm')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.sendTestNotification();
+            });
+
+            // Test connection button
+            document.getElementById('testConnectionBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify({type: 'ping', timestamp: Date.now()}));
+                    this.showToast('Connection test sent', 'info');
+                } else {
+                    this.showToast('Not connected. Reconnecting...', 'warning');
+                    this.connect();
+                }
+            });
+
+            // Get unread count
+            document.getElementById('getUnreadBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.loadNotifications();
+                this.showToast('Refreshing notifications...', 'info');
+            });
+
+            // Mark all as read
+            document.getElementById('markAllReadBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.markAllAsRead();
+            });
+
+            // Clear all
+            document.getElementById('clearAllBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.clearAllNotifications();
+            });
+        }
+
+        getCSRFToken() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            return csrfToken ? csrfToken.value : '';
+        }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if user.is_authenticated %}
+            const userId = "{{ user.id }}";
+            window.notificationManager = new WebSocketNotifications(userId);
+        {% else %}
+            document.getElementById('connectionStatus').innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Please login to test notifications</strong>
+                    <div class="mt-2">
+                        <a href="{% url 'userapp:login' %}" class="btn btn-sm btn-primary">Login</a>
+                        <a href="{% url 'userapp:register' %}" class="btn btn-sm btn-outline-primary ms-2">Register</a>
+                    </div>
+                </div>
+            `;
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -120,7 +120,19 @@
             </a>
           </li>
 
-         {% if user.is_authenticated %}
+         {% if user.is_authenticated  and user.is_buyer%}
+
+             <!-- 🔔 Notification Bell Icon -->
+            <li class="nav-item dropdown">
+                <a class="icon-btn text-dark" href="#" id="notificationDropdown" data-bs-toggle="dropdown">
+                    <i class="fas fa-bell fs-4"></i> <span id="notification-count" class="badge-count bg-danger text-white">
+                        0
+                    </span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" id="notification-menu">
+                    <li class="dropdown-header">Notifications</li>
+                </ul>
+            </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
                 <i class="fas fa-user-circle fs-3 text-primary"></i>
@@ -160,5 +172,82 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+    // WebSocket connection
+    const socket = new WebSocket(
+        "ws://" + window.location.host + "/ws/notifications/"
+    );
+
+    const notificationCount = document.getElementById("notification-count");
+    const dropdownMenu = document.getElementById("notification-menu");
+    const dropdown = document.getElementById("notificationDropdown");
+
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        updateBell(1);
+        dropdownMenu.innerHTML += `
+        <li>
+            <a class="dropdown-item small" href="#">
+                ${data.message}<br>
+                <span class="text-muted" style="font-size:10px">${data.created}</span>
+            </a>
+        </li>`;
+    };
+
+    // Update notification badge
+    function updateBell(newCount) {
+        let current = parseInt(notificationCount.innerText) || 0;
+        notificationCount.innerText = current + newCount;
+        notificationCount.style.display = "inline-block";
+    }
+
+fetch("/user/notifications/fetch/")
+    .then(res => res.json())
+    .then(data => {
+        if (data.count > 0) {
+            notificationCount.innerText = data.count;
+            notificationCount.style.display = "inline-block";
+        } else {
+            notificationCount.style.display = "none";
+        }
+    });
+
+    // Load unread notifications when dropdown is opened
+    dropdown.addEventListener("click", function () {
+        fetch("/user/notifications/fetch/")
+            .then(res => res.json())
+            .then(data => {
+                notificationCount.innerText = data.count;
+                if (!dropdownMenu.dataset.loaded) {
+    dropdownMenu.innerHTML = '<li class="dropdown-header">Notifications</li>';
+}
+
+
+                if (data.notifications.length === 0) {
+                    dropdownMenu.innerHTML += `<li><span class="dropdown-item text-muted">No new notifications</span></li>`;
+                } else {
+                    data.notifications.forEach(n => {
+                        dropdownMenu.innerHTML += `
+                            <li>
+                                <a class="dropdown-item small" href="#">
+                                    ${n.message} <br>
+                                    <span class="text-muted" style="font-size:10px">${n.created}</span>
+                                </a>
+                            </li>`;
+                    });
+                }
+                dropdownMenu.dataset.loaded = "true";
+
+                // mark notifications as read
+<!--                fetch("/user/notifications/mark-read/")-->
+<!--                    .then(() => {-->
+<!--                        notificationCount.innerText = 0;-->
+<!--                    });-->
+            });
+    });
+});
+</script>
+
 </body>
 </html>

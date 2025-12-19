@@ -1,16 +1,15 @@
-"""
-ASGI config for Ecart project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
-"""
-
+# project/asgi.py
 import os
-
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
+import UserApp.routing
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Ecart.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "Ecart.settings")
 
-application = get_asgi_application()
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(UserApp.routing.websocket_urlpatterns)
+    )
+})

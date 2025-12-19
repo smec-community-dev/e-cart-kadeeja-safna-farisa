@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<script>
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ amount }}",
+        "currency": "INR",
+        "name": "QuickKart",
+        "description": "Order Payment",
+        "order_id": "{{ payment.razorpay_order_id }}",
+        "handler": function (response) {
+
+            fetch("{% url 'userapp:razorpay_verify' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify(response)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    window.location.href = "{% url 'userapp:orders' %}";
+                } else {
+                    alert("Payment verification failed");
+                }
+            });
+        },
+        "theme": {
+            "color": "#2874f0"
+        }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+</script>
+
+</body>
+</html>
