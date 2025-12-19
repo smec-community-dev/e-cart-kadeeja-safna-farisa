@@ -16,38 +16,19 @@
 <div class="container my-5">
   <h2 class="text-center mb-5 fw-bold">Shop by Category</h2>
   <div class="row g-4">
+   {% for category in categories %}
     <div class="col-md-3">
-      <a href=" {% url 'userapp:shop_by_subcategory' 1 %}" class="text-decoration-none">
+      <a href="{% url 'userapp:shop_by_subcategory' category.category_id %}" class="text-decoration-none">
         <div class="category-card">
-          <div class="category-icon"><i class="fas fa-laptop"></i></div>
-          <h5 class="fw-bold text-dark">Electronics</h5>
+          <div class="category-icon">
+            <!-- icon stays same (or you can map later) -->
+            <i class="fas fa-tags"></i>
+          </div>
+          <h5 class="fw-bold text-dark">{{ category.category_name }}</h5>
         </div>
       </a>
     </div>
-    <div class="col-md-3">
-      <a href="#" class="text-decoration-none">
-        <div class="category-card">
-          <div class="category-icon"><i class="fas fa-tshirt"></i></div>
-          <h5 class="fw-bold text-dark">Fashion</h5>
-        </div>
-      </a>
-    </div>
-    <div class="col-md-3">
-      <a href="#" class="text-decoration-none">
-        <div class="category-card">
-          <div class="category-icon"><i class="fas fa-gem"></i></div>
-          <h5 class="fw-bold text-dark">Accessories</h5>
-        </div>
-      </a>
-    </div>
-    <div class="col-md-3">
-      <a href="#" class="text-decoration-none">
-        <div class="category-card">
-          <div class="category-icon"><i class="fas fa-couch"></i></div>
-          <h5 class="fw-bold text-dark">Home & Living</h5>
-        </div>
-      </a>
-    </div>
+    {% endfor %}
   </div>
 </div>
 

@@ -8,7 +8,14 @@ from SellerApp.models import *
 from django.db.models import Q
 from decorators.decorator import role_required
 from .models import *
-from django.contrib.auth.decorators import login_required
+from .notifications import send_notification
+import razorpay
+import json
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import Notification
+
 # Create your views here.
 
 def index(request):
@@ -32,12 +39,13 @@ def index(request):
     if request.user.is_authenticated:
         cart_count = Cart.objects.filter(user=request.user).count()
         wishlist_count = WishList.objects.filter(user=request.user).count()
-
+    categories = Category.objects.all()
     context = {
         'page_obj': page_obj,
         'search_query': search_query,
         'cart_items': cart_count,  # ← for navbar badge
-        'wishlist_count': wishlist_count,  # ← for heart badge
+        'wishlist_count': wishlist_count,
+        'categories': categories,
     }
     return render(request, "user/index.html", context)
 
@@ -54,7 +62,7 @@ def user_reg(request):
             messages.error(request, "All fields are required.")
             return redirect('userapp:register')  # Use namespaced URL
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email__iexact=email).exists():
             messages.error(request, "Email already registered. Try logging in.")
             return redirect('userapp:register')  # Use namespaced URL
 
@@ -63,7 +71,7 @@ def user_reg(request):
             return redirect('userapp:register')  # Use namespaced URL
 
         # Create user - the signal will automatically handle post-registration actions
-        user = User.objects.create_user(
+        user=User.objects.create_user(
             username=user_name,
             email=email,
             password=password,
@@ -73,7 +81,7 @@ def user_reg(request):
             is_seller=False,
             is_admin=False
         )
-
+        send_notification(user, "Welcome to our platform!", "welcome")
         messages.success(request, "Registration successful! Please login.")
         return redirect('userapp:login')  # Use namespaced URL
 
@@ -81,23 +89,27 @@ def user_reg(request):
 
 
 def redirect_by_user_type(request):
-    """
-    Redirect users safely - handle buyer explicitly
-    """
     if not request.user.is_authenticated:
         return redirect('userapp:login')
 
-    # Handle buyers (your main users)
+    # Check if Google login placed redirect session
+    redirect_to = request.session.pop("redirect_to", None)
+    if redirect_to:
+        return redirect(redirect_to)
+
+    # Normal login redirection
     if request.user.is_buyer:
         return redirect('userapp:index')
+    elif request.user.is_seller:
+        return redirect('sellerapp:index')
+    elif request.user.is_admin:
+        return redirect('adminapp:index')
 
-    # # For seller/admin, redirect to index for now (until their apps are ready)
-    # elif request.user.is_seller or request.user.is_admin:
-    #     messages.info(request, "Seller/Admin dashboard coming soon. Redirected to user dashboard.")
-    #     return redirect('userapp:index')
+    return redirect('userapp:index')
 
-    else:
-        return redirect('userapp:index')
+
+
+
 def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -114,12 +126,20 @@ def user_login(request):
 
         # Login the user - this will trigger the user_logged_in signal
         login(request, user)
+        send_notification(user, "You have logged in successfully!", "system")
+
+        # Check for offline notifications
+        offline_notifications = Notification.objects.filter(user=user, is_read=False)
+
+        if offline_notifications.exists():
+            messages.info(request, f"You have {offline_notifications.count()} new notifications")
 
         # Use the redirect function to send users to appropriate pages
         return redirect_by_user_type(request)
 
-    users = User.objects.all()
-    return render(request, 'user/login.html', {'data': users})
+    return render(request, 'user/login.html')
+
+
 @role_required('buyer',login_url='/user/login/')
 def home(request):
     search_query = request.GET.get('q', '')
@@ -239,8 +259,12 @@ def remove_cart(request, cart_id):
     item.delete()
     return redirect("userapp:cart")
 
-@role_required('buyer',login_url='/user/login/')
+@role_required('buyer', login_url='/user/login/')
 def checkout(request):
+    # Razorpay client (safe to keep here)
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
 
     if request.GET.get('clear'):
         return redirect('userapp:checkout')
@@ -251,40 +275,41 @@ def checkout(request):
 
     cart_items = None
     buy_now_product = None
-    buy_now_quantity = None
     total = 0
 
+    # ---------------- BUY NOW FLOW ----------------
     if buynow and product_id:
-        # BUY NOW FLOW
-        product = get_object_or_404(Product, product_id=product_id)
-        if product.stock < quantity:
-            messages.error(request, f"Only {product.stock} items in stock!")
-            return redirect('userapp:product_detail', product.slug)
+        buy_now_product = get_object_or_404(Product, product_id=product_id)
 
-        buy_now_product = product
-        buy_now_quantity = quantity
-        total = product.product_price * quantity
+        if buy_now_product.stock < quantity:
+            messages.error(request, "Insufficient stock!")
+            return redirect('userapp:product_detail', buy_now_product.slug)
 
+        total = buy_now_product.product_price * quantity
+
+    # ---------------- CART FLOW ----------------
     else:
-
         cart_items = Cart.objects.filter(user=request.user)
         if not cart_items.exists():
             messages.info(request, "Your cart is empty!")
             return redirect('userapp:cart')
+
         total = sum(item.product.product_price * item.quantity for item in cart_items)
 
     addresses = Address.objects.filter(user=request.user)
 
-
+    # ================= POST REQUEST =================
     if request.method == "POST":
         address_id = request.POST.get('address_id')
+        payment_method = request.POST.get('payment_method')
+
         if not address_id:
-            messages.error(request, "Please select a delivery address.")
+            messages.error(request, "Please select an address.")
             return redirect('userapp:checkout')
 
         address = get_object_or_404(Address, id=address_id, user=request.user)
 
-        # Create Order
+        # -------- Create Order (COMMON FOR BOTH) --------
         order = Orders.objects.create(
             user=request.user,
             address=address,
@@ -292,39 +317,116 @@ def checkout(request):
             order_status='Pending'
         )
 
-        if buynow and product_id:
-            # Buy Now → single item
+        # -------- Save Order Items + Reduce Stock --------
+        if buynow:
             OrderItem.objects.create(
                 order=order,
                 product=buy_now_product,
-                quantity=buy_now_quantity,
+                quantity=quantity
             )
-            buy_now_product.stock -= buy_now_quantity
+            buy_now_product.stock -= quantity
             buy_now_product.save()
         else:
-            # Cart → multiple items
             for item in cart_items:
                 OrderItem.objects.create(
                     order=order,
                     product=item.product,
-                    quantity=item.quantity,
+                    quantity=item.quantity
                 )
                 item.product.stock -= item.quantity
                 item.product.save()
-            cart_items.delete()  # Clear cart
+            cart_items.delete()
 
-        messages.success(request, f"Order placed successfully! Order ID: {order.order_id}")
-        return redirect('userapp:orders')
+        # ================= COD FLOW =================
+        if payment_method == 'cod':
+            Payment.objects.create(
+                order=order,
+                user=request.user,
+                amount=total,
+                payment_mode='cod',
+                status='Pending'
+            )
 
-    context = {
+            send_notification(request.user, "Order placed successfully!", "order_update")
+           
+            return redirect('userapp:orders')
+
+        # ================= ONLINE PAYMENT FLOW =================
+        razorpay_order = client.order.create({
+            "amount": int(total * 100),  # in paise
+            "currency": "INR",
+            "payment_capture": 1
+        })
+
+        payment = Payment.objects.create(
+            order=order,
+            user=request.user,
+            amount=total,
+            payment_mode='upi',
+            razorpay_order_id=razorpay_order['id'],
+            status='Pending'
+        )
+
+        # Redirect to Razorpay popup page
+        return render(request, 'user/razorpay_checkout.html', {
+            'razorpay_key': settings.RAZORPAY_KEY_ID,
+            'order': order,
+            'payment': payment,
+            'amount': int(total * 100),
+        })
+
+    # ================= GET REQUEST =================
+    return render(request, 'user/checkout.html', {
         'cart_items': cart_items,
         'buy_now_product': buy_now_product,
-        'buy_now_quantity': buy_now_quantity,
+        'buy_now_quantity': quantity,
         'total': total,
         'addresses': addresses,
         'is_buy_now': bool(buynow),
-    }
-    return render(request, 'user/checkout.html', context)
+    })
+
+@csrf_exempt
+def razorpay_verify(request):
+    if request.method == "POST":
+        data = json.loads(request.body.decode("utf-8"))
+
+        razorpay_order_id = data.get("razorpay_order_id")
+        razorpay_payment_id = data.get("razorpay_payment_id")
+        razorpay_signature = data.get("razorpay_signature")
+
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": razorpay_payment_id,
+                "razorpay_signature": razorpay_signature
+            })
+
+            payment = get_object_or_404(
+                Payment, razorpay_order_id=razorpay_order_id
+            )
+
+            payment.transaction_id = razorpay_payment_id
+            payment.status = "Success"
+            payment.save()
+
+            order = payment.order
+            order.order_status = "Confirmed"
+            order.save()
+
+            return JsonResponse({"status": "success"})
+
+        except Exception:
+            return JsonResponse({"status": "failed"}, status=400)
+
+
+
+
+
+
 
 @role_required('buyer',login_url='/user/login/')
 def view_orders(request):
@@ -390,7 +492,7 @@ def add_address(request):
             Address.objects.create(user=request.user, address=address_text)
             messages.success(request, "New address added!")
         return redirect('userapp:address')
-    return redirect('address')
+    return redirect('userapp:address')
 
 @role_required('buyer',login_url='/user/login/')
 def edit_address(request, address_id):
@@ -447,13 +549,9 @@ def edit_profile(request):
     return render(request,"user/edit_profile.html")
 
 
-
-
 def user_logout(request):
     logout(request)
     return redirect('userapp:index')
-
-
 
 def about(request):
     return render(request,'user/about.html')
@@ -517,3 +615,18 @@ def shop(request, category_id=None, subcategory_id=None):
         'query': query,
     }
     return render(request, 'user/shop.html', context)
+
+@role_required('buyer',login_url='/user/login/')
+def fetch_notifications(request):
+    notifications = Notification.objects.filter(user=request.user, is_read=False).order_by('-created_at')
+    data = [
+        {"id": n.id, "message": n.message, "type": n.notification_type, "created": n.created_at.strftime("%d %b %Y %I:%M %p")}
+        for n in notifications
+    ]
+    return JsonResponse({"notifications": data, "count": len(data)})
+
+@role_required('buyer',login_url='/user/login/')
+def mark_notifications_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({"status": "success"})
+

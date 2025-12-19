@@ -33,5 +33,10 @@ urlpatterns = [
     path('address/delete/<int:address_id>/', views.delete_address, name="delete_address"),
     path("edit_profile/",views.edit_profile,name="edit_profile"),
     path('manage_passwords/',views.password_change,name="password_change"),
-    path("orders/",views.view_orders,name="orders")
+    path("orders/",views.view_orders,name="orders"),
+    path("notifications/fetch/", views.fetch_notifications, name="fetch_notifications"),
+    path("notifications/mark-read/", views.mark_notifications_read, name="mark_notifications_read"),
+    path('razorpay/verify/', views.razorpay_verify, name='razorpay_verify'),
+
+
 ]

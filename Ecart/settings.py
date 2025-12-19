@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import re
+
 from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
@@ -47,7 +49,10 @@ INSTALLED_APPS = [
     'allauth',                               # ← Main allauth
     'allauth.account',                       # ← Email/password login
     'allauth.socialaccount',                 # ← Social logins (Google, etc.)
-    'allauth.socialaccount.providers.google',  #
+    'allauth.socialaccount.providers.google',
+    'storages',
+    'channels',
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -79,6 +84,40 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Ecart.wsgi.application'
+ASGI_APPLICATION = 'Ecart.asgi.application'
+
+
+# Channel Layers Configuration with Redis
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [("127.0.0.1", 6379)],
+#         },
+#     },
+# }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
+
+
+
+# Optional: Cache configuration with Redis
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
+#
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
 
 
 # Database
@@ -106,6 +145,30 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'CoreApp.User'
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+
+AWS_STORAGE_BUCKET_NAME = "quickcart-bkt-1"
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+AWS_S3_FILE_OVERWRITE = False
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+    "staticfiles":{
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
+
+
+RAZORPAY_KEY_ID =  os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+
+
 
 
 # Password validation

@@ -191,9 +191,9 @@
                                 </form>
 
                                 <!-- Buy Now -->
-                                <form method="get" action="{% url 'userapp:checkout' %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="product_slug" value="{{ product.slug }}">
+                                <form method="get" action="{% url 'userapp:checkout' %}">
+                                    <input type="hidden" name="buy_now" value="1">
+                                    <input type="hidden" name="product_id" value="{{ product.product_id }}">
                                     <input type="hidden" name="quantity" value="1" id="buyNowQty">
                                     <button type="submit" class="btn btn-success btn-lg px-5 rounded-pill shadow">
                                         <i class="fas fa-bolt me-2"></i>Buy Now
