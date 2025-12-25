@@ -175,9 +175,10 @@
   <script>
 document.addEventListener("DOMContentLoaded", function () {
     // WebSocket connection
-    const socket = new WebSocket(
-        "ws://" + window.location.host + "/ws/notifications/"
-    );
+    const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const socket = new WebSocket(
+    protocol + window.location.host + "/ws/notifications/"
+);
 
     const notificationCount = document.getElementById("notification-count");
     const dropdownMenu = document.getElementById("notification-menu");
